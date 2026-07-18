@@ -34,8 +34,10 @@ import { Upload } from 'lucide-react';
 import DatePicker from '../../shared/components/common/DatePicker';
 
 const HRApprovals = () => {
-  const { incrementRequests, approveIncrementRequest, rejectIncrementRequest } = useAdmin();
-  const { pendingLeaves, employees, showToast, refetch } = useHR();
+  const { 
+    pendingLeaves, employees, showToast, refetch, 
+    incrementRequests, approveIncrementRequest, rejectIncrementRequest 
+  } = useHR();
   const leaveRequests = pendingLeaves || [];
   const teamMembers = employees || [];
   const { formatCurrency } = useCurrency();
@@ -56,16 +58,16 @@ const HRApprovals = () => {
   const stats = useMemo(() => {
     if (activeModule === 'leaves') {
       return [
-        { label: 'Pending HR', value: leaveRequests.filter(r => r.status === 'MANAGER_APPROVED').length.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/20' },
-        { label: 'Approved Today', value: leaveRequests.filter(r => r.status === 'APPROVED').length.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-450', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
-        { label: 'Rejected', value: leaveRequests.filter(r => r.status === 'Rejected').length.toString(), icon: XCircle, color: 'text-rose-600 dark:text-rose-455', bg: 'bg-rose-50 dark:bg-rose-950/20' },
+        { label: 'Pending Approvals', value: leaveRequests.filter(r => r.status === 'MANAGER_APPROVED' || r.status === 'HR_APPROVED' || r.status === 'Pending').length.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/20' },
+        { label: 'Approved', value: leaveRequests.filter(r => r.status === 'APPROVED' || r.status === 'Approved').length.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-450', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
+        { label: 'Rejected', value: leaveRequests.filter(r => r.status === 'REJECTED' || r.status === 'Rejected').length.toString(), icon: XCircle, color: 'text-rose-600 dark:text-rose-455', bg: 'bg-rose-50 dark:bg-rose-950/20' },
         { label: 'Total Leaves', value: leaveRequests.length.toString(), icon: CalendarDays, color: 'text-primary-600 dark:text-primary-400', bg: 'bg-primary-50 dark:bg-primary-950/20' },
       ];
     } else {
       return [
-        { label: 'Pending HR', value: incrementRequests.filter(r => r.status === 'ManagerApproved').length.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/20' },
-        { label: 'Approved Today', value: incrementRequests.filter(r => r.status === 'Approved').length.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-450', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
-        { label: 'Rejected', value: incrementRequests.filter(r => r.status === 'Rejected').length.toString(), icon: XCircle, color: 'text-rose-600 dark:text-rose-455', bg: 'bg-rose-50 dark:bg-rose-950/20' },
+        { label: 'Pending Approvals', value: incrementRequests.filter(r => r.status === 'ManagerApproved' || r.status === 'HR_APPROVED' || r.status === 'Pending').length.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/20' },
+        { label: 'Approved', value: incrementRequests.filter(r => r.status === 'Approved' || r.status === 'APPROVED').length.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-450', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
+        { label: 'Rejected', value: incrementRequests.filter(r => r.status === 'Rejected' || r.status === 'REJECTED').length.toString(), icon: XCircle, color: 'text-rose-600 dark:text-rose-455', bg: 'bg-rose-50 dark:bg-rose-950/20' },
         { label: 'Total Requests', value: incrementRequests.length.toString(), icon: CalendarDays, color: 'text-primary-600 dark:text-primary-400', bg: 'bg-primary-50 dark:bg-primary-950/20' },
       ];
     }
@@ -75,7 +77,7 @@ const HRApprovals = () => {
   const filteredRequests = useMemo(() => {
     return leaveRequests.filter(r => {
       let rStatus = r.status;
-      if (rStatus === 'MANAGER_APPROVED') rStatus = 'Pending';
+      if (rStatus === 'MANAGER_APPROVED' || rStatus === 'HR_APPROVED') rStatus = 'Pending';
       if (rStatus === 'APPROVED') rStatus = 'Approved';
       if (rStatus === 'REJECTED') rStatus = 'Rejected';
       const matchesTab = activeTab === 'All' ? true : rStatus === activeTab;
@@ -103,7 +105,8 @@ const HRApprovals = () => {
       showToast(`Request ${status === 'APPROVED' ? 'approved' : 'rejected'} successfully.`);
       refetch.fetchPendingLeaves();
     } catch (e) {
-      showToast('Failed to update request', 'error');
+      console.error('Leave review error:', e);
+      showToast(e.response?.data?.error?.message || 'Failed to update request', 'error');
     }
   };
 

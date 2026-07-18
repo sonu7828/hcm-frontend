@@ -25,6 +25,7 @@ export const HRProvider = ({ children }) => {
   const [onboarding, setOnboarding] = useState([]);
   const [reports, setReports] = useState(null);
   const [exits, setExits] = useState([]);
+  const [incrementRequests, setIncrementRequests] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -229,6 +230,35 @@ export const HRProvider = ({ children }) => {
     }
   }, []);
 
+  const fetchIncrementRequests = useCallback(async () => {
+    try {
+      const res = await hrAPI.getIncrementRequests();
+      setIncrementRequests(res.data?.data || []);
+    } catch (err) {
+      console.error('Failed to fetch HR increment requests', err);
+    }
+  }, []);
+
+  const approveIncrementRequest = async (id) => {
+    try {
+      await hrAPI.approveIncrement(id);
+      showToast('Increment request approved successfully');
+      await fetchIncrementRequests();
+    } catch (err) {
+      showToast('Failed to approve increment request', 'error');
+    }
+  };
+
+  const rejectIncrementRequest = async (id) => {
+    try {
+      await hrAPI.rejectIncrement(id);
+      showToast('Increment request rejected successfully');
+      await fetchIncrementRequests();
+    } catch (err) {
+      showToast('Failed to reject increment request', 'error');
+    }
+  };
+
   const updateClearanceStatus = async (id, data) => {
     try {
       const res = await hrAPI.updateClearanceStatus(id, data);
@@ -265,7 +295,8 @@ export const HRProvider = ({ children }) => {
     fetchOnboarding();
     fetchReports();
     fetchExits();
-  }, [formatDate, fetchExits]);
+    fetchIncrementRequests();
+  }, [formatDate, fetchExits, fetchIncrementRequests]);
 
   // ── JOB ACTIONS ──
   const addJob = async (job) => {
@@ -620,13 +651,14 @@ export const HRProvider = ({ children }) => {
       employees, onboardEmployee, promoteCandidate,
       onboarding, addOnboarding, updateOnboarding, deleteOnboarding, remindManager, sendWelcomeEmail,
       exits, fetchExits, updateClearanceStatus, finalizeExit,
+      incrementRequests, approveIncrementRequest, rejectIncrementRequest,
       reports, fetchReports,
       pendingLeaves,
       tickets, replyToTicket, closeTicket,
       offers, addOffer, updateOffer, deleteOffer,
       loading,
       showToast,
-      refetch: { fetchJobs, fetchApplications, fetchInterviews, fetchEmployees, fetchPendingLeaves, fetchTickets, fetchOffers, fetchOnboarding, fetchExits },
+      refetch: { fetchJobs, fetchApplications, fetchInterviews, fetchEmployees, fetchPendingLeaves, fetchTickets, fetchOffers, fetchOnboarding, fetchExits, fetchIncrementRequests },
     }}>
       {children}
     </HRContext.Provider>
