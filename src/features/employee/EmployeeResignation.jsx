@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { employeeAPI } from '../../utils/apiService';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { FileUp, Calendar as CalendarIcon, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminAPI } from '../../utils/apiService';
-import { toast } from 'react-toastify';
+import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { Search } from 'lucide-react';
 
