@@ -223,7 +223,7 @@ const SuperAdminDashboard = () => {
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/50 hover:border-amber-200 dark:hover:border-amber-800/50 transition-colors overflow-hidden">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate" title="AI API Requests">AI API Requests</p>
-                  <p className="text-2xl font-black text-slate-800 dark:text-white mt-1 truncate" title="1.2M">1.2M</p>
+                  <p className="text-2xl font-black text-slate-800 dark:text-white mt-1 truncate" title={statsData?.totalAiRequests || 0}>{statsData?.totalAiRequests || 0}</p>
                   <p className="text-[10px] font-bold text-emerald-500 mt-0.5 truncate" title="Resume Scans & Chat">Resume Scans & Chat</p>
                 </div>
               </div>

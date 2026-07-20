@@ -560,7 +560,7 @@ const Candidates = () => {
                            <input type="text" value={formData.exp} onChange={e => setFormData({...formData, exp: e.target.value})} placeholder="e.g. 5 Years" className="input-field h-12" />
                         </div>
                         <div className="space-y-2">
-                           <label className="form-label">AI Match Score (Mock)</label>
+                           <label className="form-label">AI Match Score</label>
                            <input type="number" min="0" max="100" value={formData.match} onChange={e => setFormData({...formData, match: parseInt(e.target.value)})} className="input-field h-12" />
                         </div>
                         <div className="space-y-2">

@@ -18,7 +18,7 @@ export const EmployeeProvider = ({ children }) => {
   // ── State ──
   const [profile, setProfile] = useState(null);
   const [attendance, setAttendance] = useState({ isClockedIn: false, clockInTime: null, history: [] });
-  const [leaves, setLeaves] = useState({ balance: { sick: 10, annual: 15, casual: 5, unpaid: 0 }, requests: [] });
+  const [leaves, setLeaves] = useState({ balance: { sick: 0, annual: 0, casual: 0, unpaid: 0 }, requests: [] });
   const [payroll, setPayroll] = useState({ history: [] });
   const [benefits, setBenefits] = useState({ claims: [], insurance: { provider: 'Global Health Inc.' }, dependents: [] });
   const [performance, setPerformance] = useState({ goals: [], skills: [], reviews: [] });
@@ -43,10 +43,10 @@ export const EmployeeProvider = ({ children }) => {
         const p = res.data.data;
         const mapped = {
           ...p,
-          fullName: p.fullName || 'Demo Employee',
-          department: p.department?.name || 'Operations',
-          role: p.user?.role || 'Employee',
-          email: p.user?.email || 'employee@hcm.ai',
+          fullName: p.fullName || '',
+          department: p.department?.name || '',
+          role: p.user?.role || '',
+          email: p.user?.email || '',
           address: p.address || 'Not Provided',
           avatar: p.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.fullName || 'Employee')}&background=4f46e5&color=fff`,
           dob: p.dob ? formatDate(p.dob) : '',
