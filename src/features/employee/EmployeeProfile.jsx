@@ -2,18 +2,20 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, Mail, Phone, MapPin, Briefcase, ShieldCheck, Calendar, Award, FolderLock, 
-  Edit2, Save, X, Building2, CheckCircle2, Star, Camera, Plus, Trash2, Download, Eye, FileText
+  Edit2, Save, X, Building2, CheckCircle2, Star, Camera, Plus, Trash2, Download, Eye, FileText, Loader2
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useEmployee } from '../../context/EmployeeContext';
 import { useDateFormat } from '../../hooks/useDateFormat';
 import PhoneInput from '../../shared/components/ui/PhoneInput';
+import DatePicker from '../../shared/components/common/DatePicker';
 
 const EmployeeProfile = () => {
   const { profile, setProfile, documents, uploadDoc, deleteDoc, showToast } = useEmployee();
   const { formatDate } = useDateFormat();
   const [activeTab, setActiveTab] = useState('personal');
   const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [editData, setEditData] = useState(profile);
   const fileInputRef = useRef(null);
 
@@ -99,22 +101,45 @@ const EmployeeProfile = () => {
     { id: 'documents', label: 'Documents', icon: FolderLock },
   ];
 
-  const handleSave = () => {
-    const payload = {
-      fullName: editData.fullName,
-      email: editData.email,
-      phone: editData.phone,
-      dob: editData.dob ? new Date(editData.dob).toISOString() : null,
-      bloodGroup: editData.bloodGroup,
-      gender: editData.gender,
-      address: editData.address,
-      avatarUrl: editData.avatar,
-      emergencyName: editData.emergencyContact?.name,
-      emergencyPhone: editData.emergencyContact?.phone,
-      emergencyRelation: editData.emergencyContact?.relation,
-    };
-    setProfile(payload);
-    setIsEditing(false);
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      let parsedDob = null;
+      if (editData.dob) {
+        const d = new Date(editData.dob);
+        if (!isNaN(d.getTime())) {
+          parsedDob = d.toISOString();
+        } else {
+          parsedDob = editData.dob;
+        }
+      }
+
+      const payload = {
+        fullName: editData.fullName || '',
+        email: editData.email || '',
+        phone: editData.phone || '',
+        dob: parsedDob,
+        bloodGroup: editData.bloodGroup || '',
+        gender: editData.gender || '',
+        address: editData.address || '',
+        avatarUrl: editData.avatar || null,
+        emergencyName: editData.emergencyContact?.name || editData.emergencyName || '',
+        emergencyPhone: editData.emergencyContact?.phone || editData.emergencyPhone || '',
+        emergencyRelation: editData.emergencyContact?.relation || editData.emergencyRelation || '',
+        emergencyContact: {
+          name: editData.emergencyContact?.name || editData.emergencyName || '',
+          relation: editData.emergencyContact?.relation || editData.emergencyRelation || '',
+          phone: editData.emergencyContact?.phone || editData.emergencyPhone || ''
+        }
+      };
+      await setProfile(payload);
+      setIsEditing(false);
+    } catch (err) {
+      console.error('Save profile error:', err);
+      showToast('Failed to save profile changes', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAvatarChange = (e) => {
@@ -172,7 +197,10 @@ const EmployeeProfile = () => {
   const updateNested = (category, field, value) => {
     setEditData(prev => ({
       ...prev,
-      [category]: { ...prev[category], [field]: value }
+      [category]: {
+        ...(prev?.[category] || {}),
+        [field]: value
+      }
     }));
   };
 
@@ -200,13 +228,21 @@ const EmployeeProfile = () => {
         <div className="flex items-center gap-3">
           {isEditing ? (
             <>
-              <button onClick={() => { setIsEditing(false); setEditData(profile); }} className="btn-secondary px-6 py-2.5 font-black uppercase tracking-widest flex items-center gap-2">
+              <button 
+                disabled={isSaving}
+                onClick={() => { setIsEditing(false); setEditData(profile); }} 
+                className="btn-secondary px-6 py-2.5 font-black uppercase tracking-widest flex items-center gap-2 disabled:opacity-50"
+              >
                 <X size={18} />
                 <span>Cancel</span>
               </button>
-              <button onClick={handleSave} className="btn-primary px-8 py-2.5 font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary-200">
-                <Save size={18} />
-                <span>Save Changes</span>
+              <button 
+                disabled={isSaving}
+                onClick={handleSave} 
+                className="btn-primary px-8 py-2.5 font-black uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary-200 disabled:opacity-50"
+              >
+                {isSaving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
               </button>
             </>
           ) : (
@@ -353,20 +389,27 @@ const EmployeeProfile = () => {
                                           ) : field.type === 'phone' ? (
                                               <PhoneInput 
                                                 name={field.field} 
-                                                value={editData[field.field]} 
+                                                value={editData[field.field] || ''} 
                                                 onChange={(e) => setEditData({ ...editData, [field.field]: e.target.value })} 
                                                 className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 font-bold" 
+                                              />
+                                          ) : field.type === 'date' ? (
+                                              <DatePicker 
+                                                name={field.field} 
+                                                value={editData[field.field] || ''} 
+                                                onChange={(e) => setEditData({ ...editData, [field.field]: e.target.value })} 
+                                                className="input-field h-14 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 font-bold px-4 rounded-xl" 
                                               />
                                           ) : (
                                              <input 
                                                type={field.type || 'text'} 
-                                               value={editData[field.field]} 
+                                               value={editData[field.field] || ''} 
                                                onChange={(e) => setEditData({ ...editData, [field.field]: e.target.value })} 
                                                className="input-field h-14 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 focus:border-primary-500 focus:ring-1 focus:ring-primary-500 font-bold" 
                                              />
                                           )
                                        ) : (
-                                         <p className="px-1 text-sm font-black text-slate-800">{profile[field.field] || 'Not specified'}</p>
+                                         <p className="px-1 text-sm font-black text-slate-800 dark:text-white">{profile[field.field] || 'Not specified'}</p>
                                       )}
                                    </div>
                                 ))}
@@ -418,9 +461,9 @@ const EmployeeProfile = () => {
                           <h3 className="text-xl font-black text-slate-900 flex items-center gap-3 border-l-4 border-rose-600 pl-4 leading-none dark:text-white">Emergency Contact</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
                              {[
-                                { label: 'Contact Name', value: editData.emergencyContact.name, field: 'name' },
-                                { label: 'Relationship', value: editData.emergencyContact.relation, field: 'relation' },
-                                { label: 'Primary Phone', value: editData.emergencyContact.phone, field: 'phone', type: 'phone' },
+                                { label: 'Contact Name', value: editData.emergencyContact?.name || '', field: 'name' },
+                                { label: 'Relationship', value: editData.emergencyContact?.relation || '', field: 'relation' },
+                                { label: 'Primary Phone', value: editData.emergencyContact?.phone || '', field: 'phone', type: 'phone' },
                              ].map((field, i) => (
                                 <div key={i} className="space-y-2 text-left">
                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">{field.label}</label>
@@ -441,7 +484,7 @@ const EmployeeProfile = () => {
                                         />
                                       )
                                    ) : (
-                                      <p className="px-1 text-sm font-black text-slate-800">{profile.emergencyContact[field.field]}</p>
+                                      <p className="px-1 text-sm font-black text-slate-800 dark:text-white">{profile.emergencyContact?.[field.field] || 'Not Specified'}</p>
                                    )}
                                 </div>
                              ))}

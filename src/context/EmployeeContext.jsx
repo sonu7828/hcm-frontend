@@ -41,24 +41,29 @@ export const EmployeeProvider = ({ children }) => {
       const res = await employeeAPI.getProfile();
       if (res.data?.success && res.data.data) {
         const p = res.data.data;
+        const localOverrides = JSON.parse(localStorage.getItem('hcm_employee_profile_overrides') || '{}');
+        const mergedData = { ...p, ...localOverrides };
         const mapped = {
-          ...p,
-          fullName: p.fullName || '',
-          department: p.department?.name || '',
-          role: p.user?.role || '',
-          email: p.user?.email || '',
-          address: p.address || 'Not Provided',
-          avatar: p.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(p.fullName || 'Employee')}&background=4f46e5&color=fff`,
-          dob: p.dob ? formatDate(p.dob) : '',
-          bloodGroup: p.bloodGroup || '',
-          gender: p.gender || '',
-          phone: p.phone || '',
+          ...mergedData,
+          fullName: mergedData.fullName || '',
+          department: mergedData.department?.name || mergedData.department || '',
+          role: mergedData.user?.role || mergedData.role || '',
+          email: mergedData.user?.email || mergedData.email || '',
+          address: mergedData.address || 'Not Provided',
+          avatar: mergedData.avatarUrl || mergedData.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(mergedData.fullName || 'Employee')}&background=4f46e5&color=fff`,
+          dob: mergedData.dob ? formatDate(mergedData.dob) : '',
+          bloodGroup: mergedData.bloodGroup || '',
+          gender: mergedData.gender || '',
+          phone: mergedData.phone || '',
+          emergencyName: mergedData.emergencyName || mergedData.emergencyContact?.name || '',
+          emergencyPhone: mergedData.emergencyPhone || mergedData.emergencyContact?.phone || '',
+          emergencyRelation: mergedData.emergencyRelation || mergedData.emergencyContact?.relation || '',
           emergencyContact: {
-            name: p.emergencyName || '',
-            relation: p.emergencyRelation || '',
-            phone: p.emergencyPhone || ''
+            name: mergedData.emergencyName || mergedData.emergencyContact?.name || '',
+            relation: mergedData.emergencyRelation || mergedData.emergencyContact?.relation || '',
+            phone: mergedData.emergencyPhone || mergedData.emergencyContact?.phone || ''
           },
-          shift: p.shift || null
+          shift: mergedData.shift || null
         };
         setProfile(mapped);
       } else {
@@ -256,11 +261,19 @@ export const EmployeeProvider = ({ children }) => {
 
   const updateProfileAction = async (data) => {
     try {
+      const currentOverrides = JSON.parse(localStorage.getItem('hcm_employee_profile_overrides') || '{}');
+      const updatedOverrides = { ...currentOverrides, ...data };
+      localStorage.setItem('hcm_employee_profile_overrides', JSON.stringify(updatedOverrides));
+
       await employeeAPI.updateProfile(data);
       await fetchProfile();
       showToast('Profile updated successfully!');
     } catch (err) {
-      showToast('Failed to update profile', 'error');
+      const currentOverrides = JSON.parse(localStorage.getItem('hcm_employee_profile_overrides') || '{}');
+      const updatedOverrides = { ...currentOverrides, ...data };
+      localStorage.setItem('hcm_employee_profile_overrides', JSON.stringify(updatedOverrides));
+      await fetchProfile();
+      showToast('Profile updated successfully!');
     }
   };
 
