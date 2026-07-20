@@ -33,6 +33,7 @@ const UserManagement = () => {
   // Form State
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState('Employee');
   const [selectedDept, setSelectedDept] = useState('');
   const [selectedActualDeptId, setSelectedActualDeptId] = useState('');
@@ -43,6 +44,7 @@ const UserManagement = () => {
     setEditingUser(null);
     setName('');
     setEmail('');
+    setPassword('');
     setSelectedRole('Employee');
     setSelectedDept(organizations[0]?.name || '');
     setSelectedActualDeptId('');
@@ -53,6 +55,7 @@ const UserManagement = () => {
     setEditingUser(user);
     setName(user.name);
     setEmail(user.email);
+    setPassword('');
     setSelectedRole(user.role);
     setSelectedDept(user.department === 'Platform Level' ? '' : user.department);
     setSelectedActualDeptId(user.actualDepartmentId || '');
@@ -68,6 +71,7 @@ const UserManagement = () => {
       success = await updateUser(editingUser.id, {
         name,
         email,
+        ...(password && { password }),
         role: selectedRole,
         department: selectedDept,
         departmentId: selectedActualDeptId || undefined,
@@ -76,6 +80,7 @@ const UserManagement = () => {
       success = await addUser({
         name,
         email,
+        ...(password && { password }),
         role: selectedRole,
         department: selectedDept,
         departmentId: selectedActualDeptId || undefined,
@@ -237,11 +242,6 @@ const UserManagement = () => {
                                   onClick: () => toggleStatus(user)
                                 },
                                 {
-                                  label: 'Reset Password',
-                                  icon: RefreshCw,
-                                  onClick: () => handleResetPassword(user)
-                                },
-                                {
                                   label: 'Delete User',
                                   icon: Trash2,
                                   danger: true,
@@ -325,11 +325,6 @@ const UserManagement = () => {
                               onClick: () => toggleStatus(user)
                             },
                             {
-                              label: 'Reset Password',
-                              icon: RefreshCw,
-                              onClick: () => handleResetPassword(user)
-                            },
-                            {
                               label: 'Delete User',
                               icon: Trash2,
                               danger: true,
@@ -397,6 +392,18 @@ const UserManagement = () => {
                     placeholder="Enter email address"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    className="input-field font-semibold"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">{editingUser ? 'Reset Password (Optional)' : 'Password'}</label>
+                  <input
+                    type="text"
+                    required={!editingUser}
+                    placeholder={editingUser ? "Enter new password to reset" : "Enter password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     className="input-field font-semibold"
                   />
                 </div>
