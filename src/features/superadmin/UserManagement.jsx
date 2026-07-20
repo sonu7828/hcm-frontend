@@ -22,7 +22,7 @@ import ActionDropdown from '../../shared/components/admin/ActionDropdown';
 import ConfirmDialog from '../../shared/components/admin/ConfirmDialog';
 
 const UserManagement = () => {
-  const { users, addUser, updateUser, deleteUser, organizations, roles } = useSuperAdmin();
+  const { users, addUser, updateUser, deleteUser, organizations, roles, departments } = useSuperAdmin();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -33,6 +33,7 @@ const UserManagement = () => {
   const [email, setEmail] = useState('');
   const [selectedRole, setSelectedRole] = useState('Employee');
   const [selectedDept, setSelectedDept] = useState('');
+  const [selectedActualDeptId, setSelectedActualDeptId] = useState('');
   const [userToDelete, setUserToDelete] = useState(null);
   const [userToSuspend, setUserToSuspend] = useState(null);
 
@@ -42,6 +43,7 @@ const UserManagement = () => {
     setEmail('');
     setSelectedRole('Employee');
     setSelectedDept(organizations[0]?.name || '');
+    setSelectedActualDeptId('');
     setIsModalOpen(true);
   };
 
@@ -51,6 +53,7 @@ const UserManagement = () => {
     setEmail(user.email);
     setSelectedRole(user.role);
     setSelectedDept(user.department === 'Platform Level' ? '' : user.department);
+    setSelectedActualDeptId(user.actualDepartmentId || '');
     setIsModalOpen(true);
   };
 
@@ -64,7 +67,8 @@ const UserManagement = () => {
         name,
         email,
         role: selectedRole,
-        department: selectedDept
+        department: selectedDept,
+        departmentId: selectedActualDeptId || undefined,
       });
     } else {
       success = await addUser({
@@ -72,6 +76,7 @@ const UserManagement = () => {
         email,
         role: selectedRole,
         department: selectedDept,
+        departmentId: selectedActualDeptId || undefined,
         status: 'active'
       });
     }
@@ -409,7 +414,7 @@ const UserManagement = () => {
                     <label className="form-label">Organization</label>
                     <select
                       value={selectedDept}
-                      onChange={(e) => setSelectedDept(e.target.value)}
+                      onChange={(e) => { setSelectedDept(e.target.value); setSelectedActualDeptId(''); }}
                       className="input-field font-semibold"
                     >
                       {organizations.map(d => (
@@ -419,6 +424,22 @@ const UserManagement = () => {
                     </select>
                   </div>
                 </div>
+
+                {selectedDept && (
+                  <div>
+                    <label className="form-label mt-2">Department (Optional)</label>
+                    <select
+                      value={selectedActualDeptId}
+                      onChange={(e) => setSelectedActualDeptId(e.target.value)}
+                      className="input-field font-semibold"
+                    >
+                      <option value="">None / Platform Level</option>
+                      {departments.filter(d => d.organizationName === selectedDept).map(d => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="pt-4 flex items-center gap-3 border-t border-slate-50 dark:border-slate-800/80">
                   <button
