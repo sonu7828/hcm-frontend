@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Filter, Calendar, Users, DollarSign, Lock, Play, Table, AlertCircle,
   TrendingUp, Zap, Info, X, Check, Edit3, TrendingDown, Eye, Download,
-  CheckCircle2, MoreVertical, Calculator, History, User
+  CheckCircle2, MoreVertical, Calculator, History, User, Loader2
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { cn } from '../../utils/cn';
@@ -33,6 +33,31 @@ const PayrollCenter = () => {
   const currentMonthIndex = new Date().getMonth();
   const months = allMonths.slice(0, currentMonthIndex + 1);
   const [selectedMonth, setSelectedMonth] = useState(months[months.length - 1]);
+
+  // Confirmation checks & processing state
+  const [payrollChecks, setPayrollChecks] = useState([false, false, false, false]);
+  const [isSimulatingPayroll, setIsSimulatingPayroll] = useState(false);
+
+  const togglePayrollCheck = (idx) => {
+    setPayrollChecks(prev => {
+      const next = [...prev];
+      next[idx] = !next[idx];
+      return next;
+    });
+  };
+
+  const handleExecutePayroll = async () => {
+    setIsSimulatingPayroll(true);
+    try {
+      await runPayroll(selectedMonth);
+      showToast(`Payroll for ${selectedMonth} 2026 successfully simulated and executed!`);
+      setIsRunningPayroll(false);
+    } catch (err) {
+      showToast('Failed to process payroll batch', 'error');
+    } finally {
+      setIsSimulatingPayroll(false);
+    }
+  };
 
   useEffect(() => {
     fetchPayroll(selectedMonth);
@@ -459,19 +484,57 @@ NET PAYABLE: ${formatCurrency(emp.net, emp.currency)}
 
                 <section className="space-y-8">
                   <div className="space-y-4">
-                    <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-550 uppercase tracking-widest px-1">Confirmation Checks</label>
-                    <div className="space-y-4 italic">
+                    <div className="flex items-center justify-between px-1">
+                      <label className="text-[10px] font-extrabold text-slate-400 dark:text-slate-550 uppercase tracking-widest">Confirmation Checks</label>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          const allChecked = payrollChecks.every(Boolean);
+                          setPayrollChecks([!allChecked, !allChecked, !allChecked, !allChecked]);
+                        }} 
+                        className="text-[10px] font-bold text-primary-600 dark:text-primary-400 uppercase tracking-widest hover:underline cursor-pointer"
+                      >
+                        {payrollChecks.every(Boolean) ? 'Deselect All' : 'Select All'}
+                      </button>
+                    </div>
+                    <div className="space-y-3">
                       {[
                         'Calculate attendance & leave deductions',
                         'Apply individual & team-based bonuses',
                         'Audit government & professional tax compliance',
                         'Generate secure digital payslips'
                       ].map((item, i) => (
-                        <div key={i} className="flex items-center gap-4 group cursor-pointer">
-                          <div className="w-6 h-6 shrink-0 rounded-lg border-2 border-slate-100 dark:border-slate-800 flex items-center justify-center group-hover:border-primary-600 transition-all">
-                            <Check size={14} className="text-primary-600 opacity-0 group-hover:opacity-100" />
+                        <div 
+                          key={i} 
+                          onClick={() => togglePayrollCheck(i)}
+                          className={cn(
+                            "w-full flex items-center gap-4 p-4 rounded-2xl border transition-all cursor-pointer select-none",
+                            payrollChecks[i] 
+                              ? "bg-emerald-50/80 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-900/50 text-slate-900 dark:text-white shadow-sm" 
+                              : "bg-slate-50 border-slate-200 dark:bg-slate-800/50 dark:border-slate-700 text-slate-500 hover:bg-slate-100/80"
+                          )}
+                        >
+                          <div 
+                            className={cn(
+                              "w-6 h-6 shrink-0 rounded-lg border-2 flex items-center justify-center transition-all",
+                              payrollChecks[i] 
+                                ? "bg-emerald-600 border-emerald-600 text-white shadow-md shadow-emerald-500/20 scale-105" 
+                                : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
+                            )}
+                          >
+                            {payrollChecks[i] && <Check size={14} className="stroke-[3] text-white" />}
                           </div>
-                          <span className="text-sm font-medium text-slate-550 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white transition-colors uppercase tracking-tight">{item}</span>
+                          <span className="text-xs md:text-sm font-black uppercase tracking-tight flex-1 text-left">
+                            {item}
+                          </span>
+                          <span className={cn(
+                            "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md transition-all",
+                            payrollChecks[i] 
+                              ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" 
+                              : "bg-amber-100/80 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400"
+                          )}>
+                            {payrollChecks[i] ? 'Confirmed ✓' : 'Pending Check'}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -495,14 +558,21 @@ NET PAYABLE: ${formatCurrency(emp.net, emp.currency)}
                   Cancel
                 </button>
                 <button
-                  onClick={() => {
-                    runPayroll(selectedMonth);
-                    setIsRunningPayroll(false);
-                  }}
-                  className="flex-1 py-4 bg-primary-600 text-white rounded-2xl font-bold hover:bg-primary-700 transition-all shadow-xl shadow-primary-200 active:scale-95 flex items-center justify-center gap-2"
+                  onClick={handleExecutePayroll}
+                  disabled={isSimulatingPayroll}
+                  className="w-full sm:flex-1 py-4 bg-primary-600 text-white rounded-2xl font-bold hover:bg-primary-700 disabled:opacity-50 transition-all shadow-xl shadow-primary-200 active:scale-95 flex items-center justify-center gap-2"
                 >
-                  <Play size={18} fill="currentColor" />
-                  <span>Simulate & Execute</span>
+                  {isSimulatingPayroll ? (
+                    <>
+                      <Loader2 size={18} className="animate-spin" />
+                      <span>Executing Payroll...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Play size={18} fill="currentColor" />
+                      <span>Simulate & Execute</span>
+                    </>
+                  )}
                 </button>
               </div>
             </motion.div>
