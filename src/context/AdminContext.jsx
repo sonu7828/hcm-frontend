@@ -59,99 +59,21 @@ export const AdminProvider = ({ children, user }) => {
     };
   }, []);
 
-  // --- MOCK DATA FOR DEMO MODE ---
-  const initialUsers = [
-    { id: '1', name: 'John Wick', email: 'john@globaltech.com', role: 'Admin', department: 'Operations', lastLogin: '12m ago', status: 'Active', img: '', phone: '9876543210', empId: 'EMP-001', joinDate: '2024-01-15', empType: 'Full-time', manager: 'None', address: '100 Main Street' },
-    { id: '2', name: 'Alice Cooper', email: 'alice@globaltech.com', role: 'Manager', department: 'Product & Design', lastLogin: '2h ago', status: 'Active', img: '', phone: '9876543211', empId: 'EMP-002', joinDate: '2024-02-20', empType: 'Full-time', manager: 'John Wick', address: '101 Main Street' },
-    { id: '3', name: 'Bob Marley', email: 'bob@globaltech.com', role: 'Employee', department: 'Engineering', lastLogin: '1d ago', status: 'Inactive', img: '', phone: '9876543212', empId: 'EMP-003', joinDate: '2024-03-10', empType: 'Contract', manager: 'Alice Cooper', address: '102 Main Street' },
-    { id: '4', name: 'Sarah Connor', email: 'sarah@globaltech.com', role: 'HR', department: 'Human Resources', lastLogin: '4h ago', status: 'Active', img: '', phone: '9876543213', empId: 'EMP-004', joinDate: '2024-01-05', empType: 'Full-time', manager: 'John Wick', address: '103 Main Street' },
-    { id: '5', name: 'Diana Ross', email: 'diana@globaltech.com', role: 'Candidate', department: 'None', lastLogin: '-', status: 'Pending', img: '', phone: '9876543214', empId: 'EMP-005', joinDate: '2024-04-01', empType: 'Intern', manager: 'Sarah Connor', address: '104 Main Street' },
-  ];
-
-  const initialDepartments = [
-    { id: '1', name: 'Operations', code: 'OPS', head: 'John Wick', parent: 'Corporate', employees: 1, status: 'Active', description: 'Core business operations and logistics.', color: '#4f46e5' },
-    { id: '2', name: 'Product & Design', code: 'PRD', head: 'Alice Cooper', parent: 'Operations', employees: 1, status: 'Active', description: 'Building the future of our product interface.', color: '#0ea5e9' },
-    { id: '3', name: 'Engineering', code: 'ENG', head: 'Alice Cooper', parent: 'Operations', employees: 1, status: 'Active', description: 'Development and infrastructure.', color: '#8b5cf6' },
-    { id: '4', name: 'Human Resources', code: 'HR', head: 'Sarah Connor', parent: 'Corporate', employees: 1, status: 'Active', description: 'People and culture management.', color: '#ec4899' },
-    { id: '5', name: 'Finance', code: 'FIN', head: 'Bob Marley', parent: 'Operations', employees: 0, status: 'Archived', description: 'Accounting and financial planning.', color: '#f59e0b' },
-  ];
-
-  const initialRoles = [
-    { id: '1', name: 'Admin', description: 'Full system access', isCustom: false, permissions: { dashboard: ['view', 'edit', 'manage'], users: ['view', 'create', 'edit', 'delete'], departments: ['view', 'create', 'edit', 'delete'] } },
-    { id: '2', name: 'Manager', description: 'Team management access', isCustom: false, permissions: { dashboard: ['view'], users: ['view', 'edit'], departments: ['view'] } },
-    { id: '3', name: 'HR', description: 'People management access', isCustom: false, permissions: { dashboard: ['view'], users: ['view', 'create', 'edit', 'delete'], departments: ['view', 'create', 'edit'] } },
-    { id: '4', name: 'Employee', description: 'Standard user access', isCustom: false, permissions: { dashboard: ['view'] } },
-    { id: '5', name: 'Candidate', description: 'Limited portal access', isCustom: false, permissions: {} },
-  ];
-
-  const initialPayroll = [
-    { id: 1, name: 'John Wick', basic: 12000, bonus: 1200, deductions: 400, net: 12800, status: 'Draft', img: '' },
-    { id: 2, name: 'Alice Cooper', basic: 9500, bonus: 800, deductions: 300, net: 10000, status: 'Draft', img: '' },
-    { id: 3, name: 'Bob Marley', basic: 6000, bonus: 0, deductions: 200, net: 5800, status: 'Processed', img: '' },
-  ];
-
-  const initialLogs = [
-    { id: 1, user: 'John Wick', action: 'Login Success', module: 'Auth', ip: '192.168.1.4', device: 'MBP 16"', time: '2m ago', level: 'Security' },
-    { id: 2, user: 'Sarah Connor', action: 'Changed Permissions', module: 'Roles', ip: '192.110.4.1', device: 'Windows Desktop', time: '14m ago', level: 'Critical' },
-    { id: 3, user: 'Alice Cooper', action: 'Exported Payouts', module: 'Payroll', ip: '172.16.0.42', device: 'iPhone 15 Pro', time: '1h ago', level: 'Info' },
-    { id: 4, user: 'John Wick', action: 'Integration Sync', module: 'Integrations', ip: '192.168.1.4', device: 'MBP 16"', time: '3h ago', level: 'System' },
-    { id: 5, user: 'Bob Marley', action: 'Failed Login', module: 'Auth', ip: '45.12.8.99', device: 'Chrome / Linux', time: '5h ago', level: 'Warning' },
-  ];
-
-  const initialHolidays = [
-    { id: 1, name: 'New Year Day', date: '2026-01-01', type: 'Public', region: 'All Regions', status: 'Upcoming', repeat: true, description: '' },
-    { id: 2, name: 'Spring Festival', date: '2026-02-12', type: 'Regional', region: 'APAC-India', status: 'Passed', repeat: false, description: '' },
-    { id: 3, name: 'Labour Day', date: '2026-05-01', type: 'Public', region: 'All Regions', status: 'Passed', repeat: true, description: '' },
-    { id: 4, name: 'Independence Day', date: '2026-07-04', type: 'Public', region: 'Global-US East', status: 'Passed', repeat: false, description: '' },
-    { id: 5, name: 'Thanksgiving', date: '2026-11-26', type: 'Public', region: 'Global-US East', status: 'Upcoming', repeat: true, description: '' },
-    { id: 6, name: 'Christmas Day', date: '2026-12-25', type: 'Public', region: 'All Regions', status: 'Upcoming', repeat: true, description: '' },
-  ];
-
-  const initialBenefits = [
-    { id: 1, name: 'Platinum Health Plus', category: 'Insurance', provider: 'Global Health Inc.', contribution: `${getSymbol()}450/m`, eligibility: 'Full-time Only', status: 'Active', empContribution: '0.00', description: '', autoEnroll: true },
-    { id: 2, name: 'Mental Wellness Sub', category: 'Wellness', provider: 'MindScale', contribution: `${getSymbol()}25/m`, eligibility: 'All Employees', status: 'Active', empContribution: '0.00', description: '', autoEnroll: false },
-    { id: 3, name: 'Learning & Dev Fund', category: 'Reimbursement', provider: 'Self-Funded', contribution: `Up to ${getSymbol()}2k/y`, eligibility: 'Full-time Only', status: 'Active', empContribution: '0.00', description: '', autoEnroll: false },
-    { id: 4, name: '401(k) Match (Tier 1)', category: 'Retirement', provider: 'WealthGuard', contribution: '5% Match', eligibility: 'Senior Management', status: 'Active', empContribution: '0.00', description: '', autoEnroll: true },
-    { id: 5, name: 'Commuter Allowance', category: 'Allowance', provider: 'CityTransit', contribution: `${getSymbol()}100/m`, eligibility: 'All Employees', status: 'Disabled', empContribution: '0.00', description: '', autoEnroll: false },
-  ];
-
-  const initialAiModules = [
-    { id: 1, name: 'Resume Screening', desc: 'Auto-scan resumes and rank candidates by job fit score.', status: 'Active', confidence: 94, settings: {} },
-    { id: 2, name: 'Attrition Prediction', desc: 'Analyze employee behavior to predict potential exit risks.', status: 'Active', confidence: 88, settings: {} },
-    { id: 3, name: 'Smart Hiring Suggestions', desc: 'AI-driven recommendations for team composition & roles.', status: 'Inactive', confidence: 92, settings: {} },
-    { id: 4, name: 'AI Chat Assistant', desc: 'Conversational agent for employee self-service queries.', status: 'Active', confidence: 98, settings: {} },
-    { id: 5, name: 'Performance Insights', desc: 'Generative reports on workforce productivity & output.', status: 'Active', confidence: 85, settings: {} },
-    { id: 6, name: 'Automated Job Posting', desc: 'AI-generated job descriptions based on skill gaps.', status: 'Inactive', confidence: 90, settings: {} },
-  ];
-
-  const initialAiLogs = [
-    { id: 1, label: 'Screening Candidates...', type: 'In Progress', timestamp: new Date().toISOString() },
-    { id: 2, label: 'Aggregating Team Trends', type: 'Queue', timestamp: new Date().toISOString() },
-    { id: 3, label: 'Updating Vector Store', type: 'Success', timestamp: new Date().toISOString() },
-  ];
-
   // --- STATE FOR API MIGRATED RESOURCES ---
-  const [users, setUsers] = useState(() => loadInitialData('users', initialUsers));
-  const [departments, setDepartments] = useState(() => loadInitialData('departments', initialDepartments));
-  const [payrollList, setPayrollList] = useState(() => loadInitialData('payroll', initialPayroll));
-  const [systemLogs, setSystemLogs] = useState(() => loadInitialData('logs', initialLogs));
-  const [roles, setRoles] = useState(() => loadInitialData('roles', initialRoles));
-  const [holidays, setHolidays] = useState(() => loadInitialData('holidays', initialHolidays));
+  const [users, setUsers] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [payrollList, setPayrollList] = useState([]);
+  const [systemLogs, setSystemLogs] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [holidays, setHolidays] = useState([]);
   const [calendars, setCalendars] = useState([]);
-  const [shifts, setShifts] = useState(() => loadInitialData('shifts', []));
-  const [overtimePolicies, setOvertimePolicies] = useState(() => loadInitialData('overtimePolicies', []));
-  const [benefits, setBenefits] = useState(() => loadInitialData('benefits', initialBenefits));
-  const [aiModules, setAiModules] = useState(() => loadInitialData('aiModules', initialAiModules));
-  const [aiLogs, setAiLogs] = useState(() => loadInitialData('aiLogs', initialAiLogs));
+  const [shifts, setShifts] = useState([]);
+  const [overtimePolicies, setOvertimePolicies] = useState([]);
+  const [benefits, setBenefits] = useState([]);
+  const [aiModules, setAiModules] = useState([]);
+  const [aiLogs, setAiLogs] = useState([]);
   const [incrementRequests, setIncrementRequests] = useState([]);
-
-  const initialIntegrations = [
-    { id: '1', name: 'Google Workspace', category: 'Productivity', status: 'Connected', health: '99.9%', sync: 'Real-time', icon: 'Google' },
-    { id: '2', name: 'Slack Enterprise', category: 'Communication', status: 'Connected', health: '100%', sync: 'Every 5m', icon: 'Slack' },
-    { id: '3', name: 'Zoom Meetings', category: 'Video', status: 'Disconnected', health: '-', sync: 'Manual', icon: 'Zoom' },
-    { id: '4', name: 'OpenAI GPT-4', category: 'AI', status: 'Connected', health: '98.5%', sync: 'Real-time', icon: 'Brain' },
-  ];
-  const [integrations, setIntegrations] = useState(() => loadInitialData('integrations', initialIntegrations));
+  const [integrations, setIntegrations] = useState([]);
   const [salaryComponents, setSalaryComponents] = useState([]);
   const [deductionRules, setDeductionRules] = useState([]);
 

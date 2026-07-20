@@ -4,9 +4,9 @@ import { DollarSign, IndianRupee, Euro, PoundSterling } from 'lucide-react';
 
 const CurrencyContext = createContext();
 
-// Mock exchange rates (Base: USD)
+// Default static exchange rates (fallback without live API)
 // In a real production app, this would be fetched from a live API (e.g., ExchangeRate-API, Fixer.io)
-const MOCK_EXCHANGE_RATES = {
+const DEFAULT_EXCHANGE_RATES = {
   'USD': 1,
   'INR': 83.2,
   'EUR': 0.92,
@@ -117,8 +117,8 @@ export const CurrencyProvider = ({ children }) => {
     }
 
     // Convert from original -> USD -> Target
-    const baseRate = MOCK_EXCHANGE_RATES[originalCurrencyCode] || 1;
-    const targetRate = MOCK_EXCHANGE_RATES[currencyCode] || 1;
+    const baseRate = DEFAULT_EXCHANGE_RATES[originalCurrencyCode] || 1;
+    const targetRate = DEFAULT_EXCHANGE_RATES[currencyCode] || 1;
     
     const amountInUSD = Number(amount) / baseRate;
     const convertedAmount = amountInUSD * targetRate;
