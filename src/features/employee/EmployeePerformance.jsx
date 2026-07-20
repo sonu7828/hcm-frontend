@@ -2,19 +2,21 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   BarChart3, Target, Award, TrendingUp, Star, ChevronRight, Calendar, ExternalLink, Download, 
-  Clock, CheckCircle2, AlertCircle, Zap, User, LayoutGrid, X, Edit, Info, ShieldCheck, Trash2
+  Clock, CheckCircle2, AlertCircle, Zap, User, LayoutGrid, X, Edit, Info, ShieldCheck, Trash2, Plus
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useEmployee } from '../../context/EmployeeContext';
 import CenterModal from '../../shared/components/layout/CenterModal';
 
 const EmployeePerformance = () => {
-  const { performance, updateGoalProgress, upsertSkill, deleteSkill, showToast } = useEmployee();
+  const { performance, updateGoalProgress, addGoal, deleteGoal, upsertSkill, deleteSkill, showToast } = useEmployee();
   const [selectedGoal, setSelectedGoal] = useState(null);
   const [showReviewHistory, setShowReviewHistory] = useState(false);
   const [showSkillVault, setShowSkillVault] = useState(false);
   const [showVisualTrends, setShowVisualTrends] = useState(false);
   const [showAcademy, setShowAcademy] = useState(false);
+  const [showStrategyRoadmap, setShowStrategyRoadmap] = useState(false);
+  const [showAddGoalModal, setShowAddGoalModal] = useState(false);
 
   const [newSkillName, setNewSkillName] = useState('');
   const [newSkillLevel, setNewSkillLevel] = useState(50);
@@ -93,7 +95,13 @@ const EmployeePerformance = () => {
                      <Target className="text-primary-600" size={26} />
                      Active Strategic Goals
                   </h3>
-                  <button onClick={() => showToast('Opening Strategy Roadmap...')} className="text-[10px] font-black text-primary-600 uppercase tracking-widest hover:underline">Full Strategy</button>
+                  <div className="flex items-center gap-3">
+                      <button onClick={() => setShowAddGoalModal(true)} className="btn-primary px-4 py-2 text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm">
+                         <Plus size={14} />
+                         <span>Add Goal</span>
+                      </button>
+                      <button onClick={() => setShowStrategyRoadmap(true)} className="text-[10px] font-black text-primary-600 uppercase tracking-widest hover:underline cursor-pointer">Full Strategy</button>
+                  </div>
                </div>
                <div className="overflow-x-auto">
                   <table className="w-full text-left">
@@ -138,9 +146,14 @@ const EmployeePerformance = () => {
                                  </div>
                               </td>
                               <td className="px-8 py-7 text-right">
-                                 <button onClick={() => setSelectedGoal(goal)} className="p-3 bg-slate-50 text-slate-400 hover:text-primary-600 border border-slate-100 rounded-2xl shadow-sm transition-all group-hover:scale-110">
-                                    <Edit size={18} />
-                                 </button>
+                                  <div className="flex items-center justify-end gap-2">
+                                     <button onClick={() => setSelectedGoal(goal)} className="p-2.5 bg-slate-50 text-slate-400 hover:text-primary-600 border border-slate-100 rounded-2xl shadow-sm transition-all hover:scale-110" title="Edit Progress">
+                                        <Edit size={16} />
+                                     </button>
+                                     <button onClick={() => deleteGoal(goal.id)} className="p-2.5 bg-slate-50 text-slate-400 hover:text-rose-600 border border-slate-100 rounded-2xl shadow-sm transition-all hover:scale-110" title="Delete Goal">
+                                        <Trash2 size={16} />
+                                     </button>
+                                  </div>
                               </td>
                            </tr>
                         ))}
@@ -479,6 +492,212 @@ const EmployeePerformance = () => {
                Exit Portal
             </button>
          </div>
+      </CenterModal>
+
+      {/* Strategy Roadmap Modal */}
+      <CenterModal 
+        isOpen={showStrategyRoadmap} 
+        onClose={() => setShowStrategyRoadmap(false)} 
+        title="Full Strategy Roadmap 2026"
+        maxWidth="max-w-4xl"
+      >
+         <div className="p-8 space-y-8 text-left max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-900">
+            {/* Executive Overview */}
+            <div className="p-6 bg-gradient-to-r from-primary-600 to-indigo-700 text-white rounded-3xl space-y-3 shadow-xl">
+               <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] bg-white/20 px-3 py-1 rounded-full">Strategic Vision</span>
+                  <span className="text-xs font-bold opacity-80">Q1 - Q4 2026</span>
+               </div>
+               <h3 className="text-2xl font-black italic tracking-tight">Executive Strategy & OKR Roadmap</h3>
+               <p className="text-xs text-primary-100 font-medium leading-relaxed">
+                  Aligning personal growth, engineering excellence, and departmental KPIs with organizational OKRs.
+               </p>
+            </div>
+
+            {/* Strategic Goals Breakdown */}
+            <div className="space-y-6">
+               <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Active Strategic Objectives</h4>
+               <div className="space-y-4">
+                  {performance.goals?.map((goal, idx) => (
+                     <div key={idx} className="p-6 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                           <div>
+                              <span className="text-[9px] font-black text-primary-600 dark:text-primary-400 uppercase tracking-widest bg-primary-50 dark:bg-primary-950/30 px-2.5 py-1 rounded-md">
+                                 Pillar #{idx + 1}
+                              </span>
+                              <h4 className="text-base font-black text-slate-900 dark:text-white mt-2">{goal.title}</h4>
+                           </div>
+                           <div className="flex items-center gap-3">
+                              <span className={cn(
+                                 "text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md",
+                                 goal.priority === 'High' ? "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400" : "bg-indigo-50 text-indigo-600 dark:bg-indigo-950/30 dark:text-indigo-400"
+                              )}>
+                                 {goal.priority} Priority
+                              </span>
+                              <span className="text-xs font-bold text-slate-400">Target: {goal.deadline}</span>
+                           </div>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="space-y-1.5">
+                           <div className="flex justify-between items-center text-xs font-black">
+                              <span className="text-slate-400 uppercase tracking-widest text-[9px]">Execution Progress</span>
+                              <span className="text-slate-900 dark:text-white">{goal.progress}%</span>
+                           </div>
+                           <div className="w-full h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden p-[1px]">
+                              <div 
+                                className={cn("h-full rounded-full transition-all duration-500", goal.progress === 100 ? "bg-emerald-500" : "bg-primary-600")}
+                                style={{ width: `${goal.progress}%` }}
+                              />
+                           </div>
+                        </div>
+
+                        {/* Key Deliverables */}
+                        <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-bold text-slate-600 dark:text-slate-350">
+                           <div className="flex items-center gap-2">
+                              <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                              <span>Milestone Audit & Architectural Review</span>
+                           </div>
+                           <div className="flex items-center gap-2">
+                              <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />
+                              <span>KPI Validation & Performance Benchmark</span>
+                           </div>
+                        </div>
+                     </div>
+                  ))}
+               </div>
+            </div>
+
+            {/* Strategic Milestone Timeline */}
+            <div className="space-y-4">
+               <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest">Quarterly Strategy Milestones</h4>
+               <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  {[
+                     { q: 'Q1 2026', title: 'Architecture Planning', status: 'Completed', color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600' },
+                     { q: 'Q2 2026', title: 'Core Feature Rollout', status: 'Completed', color: 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600' },
+                     { q: 'Q3 2026', title: 'Security & Scaling Audit', status: 'In Progress', color: 'border-primary-500 bg-primary-50 dark:bg-primary-950/20 text-primary-600' },
+                     { q: 'Q4 2026', title: 'Global Scale & Review', status: 'Upcoming', color: 'border-slate-200 bg-slate-50 dark:bg-slate-800 text-slate-400' },
+                  ].map((m, i) => (
+                     <div key={i} className={cn("p-4 rounded-2xl border-2 space-y-2 text-left", m.color)}>
+                        <span className="text-[9px] font-black uppercase tracking-widest opacity-80">{m.q}</span>
+                        <h5 className="text-xs font-black text-slate-900 dark:text-white leading-tight">{m.title}</h5>
+                        <span className="inline-block text-[8px] font-black uppercase tracking-widest">{m.status}</span>
+                     </div>
+                  ))}
+               </div>
+            </div>
+
+            <button 
+              type="button" 
+              onClick={() => setShowStrategyRoadmap(false)} 
+              className="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest shadow-xl"
+            >
+               Seal Strategy Roadmap
+            </button>
+         </div>
+      </CenterModal>
+
+      {/* Add Strategic Goal Modal */}
+      <CenterModal 
+        isOpen={showAddGoalModal} 
+        onClose={() => setShowAddGoalModal(false)} 
+        title="Register New Strategic Goal"
+      >
+         <form 
+           onSubmit={async (e) => {
+             e.preventDefault();
+             const formData = new FormData(e.target);
+             const title = formData.get('title');
+             if (!title || !title.trim()) {
+               showToast('Goal title is required', 'error');
+               return;
+             }
+             await addGoal({
+               title,
+               priority: formData.get('priority'),
+               deadline: formData.get('deadline'),
+               progress: formData.get('progress') || 0,
+               category: formData.get('category'),
+               description: formData.get('description')
+             });
+             setShowAddGoalModal(false);
+           }}
+           className="p-8 space-y-6 text-left bg-white dark:bg-slate-900"
+         >
+            <div className="space-y-2">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Goal / Objective Title</label>
+               <input 
+                 type="text" 
+                 name="title" 
+                 required 
+                 placeholder="e.g. Implement Automated Microservice Testing"
+                 className="input-field h-14 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold"
+               />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Priority Level</label>
+                  <select name="priority" className="input-field h-14 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+                     <option value="High">High Priority</option>
+                     <option value="Medium">Medium Priority</option>
+                     <option value="Low">Low Priority</option>
+                  </select>
+               </div>
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Target Cycle / Deadline</label>
+                  <input 
+                    type="text" 
+                    name="deadline" 
+                    defaultValue="Q4 2026"
+                    placeholder="e.g. Q3 2026 or Dec 31"
+                    className="input-field h-14 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold"
+                  />
+               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Category</label>
+                  <select name="category" className="input-field h-14 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold">
+                     <option value="Strategic">Strategic Engineering</option>
+                     <option value="Productivity">Productivity & Quality</option>
+                     <option value="Leadership">Leadership & Collaboration</option>
+                     <option value="Skill">Skill Development</option>
+                  </select>
+               </div>
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Initial Completion (%)</label>
+                  <input 
+                    type="number" 
+                    name="progress" 
+                    min="0" 
+                    max="100" 
+                    defaultValue="0"
+                    className="input-field h-14 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold"
+                  />
+               </div>
+            </div>
+
+            <div className="space-y-2">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Description / Key Deliverables (Optional)</label>
+               <textarea 
+                 name="description" 
+                 rows="3" 
+                 placeholder="Outline key results or milestones for this goal..."
+                 className="input-field py-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-bold resize-none"
+               />
+            </div>
+
+            <div className="pt-4 flex gap-4">
+               <button type="button" onClick={() => setShowAddGoalModal(false)} className="flex-1 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest">
+                  Cancel
+               </button>
+               <button type="submit" className="flex-2 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest shadow-xl">
+                  Save Goal
+               </button>
+            </div>
+         </form>
       </CenterModal>
    </div>
   );

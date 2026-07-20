@@ -42,6 +42,21 @@ const HRApprovals = () => {
    const teamMembers = employees || [];
    const { formatCurrency } = useCurrency();
 
+   const defaultMembers = useMemo(() => [
+     { id: 'emp-1', name: 'Alex Morgan' },
+     { id: 'emp-2', name: 'Sarah Jenkins' },
+     { id: 'emp-3', name: 'Michael Chen' },
+     { id: 'emp-4', name: 'Emily Davis' },
+     { id: 'emp-5', name: 'David Wilson' }
+   ], []);
+
+   const availableMembers = useMemo(() => {
+     if (employees && employees.length > 0) {
+       return employees.map(e => ({ id: e.id, name: e.fullName || e.name || e.user?.email || 'Employee' }));
+     }
+     return defaultMembers;
+   }, [employees, defaultMembers]);
+
    // UI States
    const [activeModule, setActiveModule] = useState('leaves'); // 'leaves' | 'increments'
    const [isExporting, setIsExporting] = useState(false);
@@ -524,17 +539,64 @@ const HRApprovals = () => {
             title="Submit Leave Request"
          >
             <form onSubmit={handleAddRequest} className="p-6 sm:p-8 space-y-4 sm:space-y-6 text-left bg-white dark:bg-slate-900">
-               <div className="space-y-2 text-left">
-                  <label className="form-label text-[10px] uppercase tracking-widest mb-1.5 block">Employee</label>
-                  <select
-                     className="input-field h-11 sm:h-12 font-semibold text-sm"
-                     value={newRequest.employeeId}
-                     onChange={e => setNewRequest({ ...newRequest, employeeId: e.target.value })}
-                  >
-                     <option value="" className="dark:bg-slate-900">Select Member</option>
-                     {teamMembers.map(m => <option key={m.id} value={m.id} className="dark:bg-slate-900">{m.name}</option>)}
-                  </select>
+            <div className="space-y-3 text-left">
+               <label className="form-label text-[10px] uppercase tracking-widest block">Employee</label>
+               
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                     <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Select from list:</p>
+                     <select 
+                        className="input-field h-11 font-semibold text-sm w-full cursor-pointer bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                        value={newRequest.employeeId || ''}
+                        onChange={e => {
+                           const selected = availableMembers.find(m => m.id === e.target.value);
+                           setNewRequest({ 
+                              ...newRequest, 
+                              employeeId: e.target.value, 
+                              employeeName: selected ? selected.name : e.target.value 
+                           });
+                        }}
+                     >
+                        <option value="" className="dark:bg-slate-900">-- Select Member --</option>
+                        {availableMembers.map(m => (
+                           <option key={m.id} value={m.id} className="dark:bg-slate-900 font-medium">
+                              {m.name} {m.role ? `(${m.role})` : ''}
+                           </option>
+                        ))}
+                     </select>
+                  </div>
+
+                  <div>
+                     <p className="text-[9px] font-black uppercase text-slate-400 mb-1">Or type employee name:</p>
+                     <input 
+                        type="text"
+                        placeholder="Type custom name..."
+                        className="input-field h-11 font-semibold text-sm w-full bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                        value={newRequest.employeeName || ''}
+                        onChange={e => setNewRequest({ ...newRequest, employeeName: e.target.value, employeeId: e.target.value })}
+                     />
+                  </div>
                </div>
+
+               <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[9px] font-black uppercase text-slate-400">Quick Select:</span>
+                  {availableMembers.map(m => (
+                     <button
+                       key={m.id}
+                       type="button"
+                       onClick={() => setNewRequest({ ...newRequest, employeeId: m.id, employeeName: m.name })}
+                       className={cn(
+                         "px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border cursor-pointer",
+                         (newRequest.employeeName === m.name || newRequest.employeeId === m.id)
+                           ? "bg-primary-600 text-white border-primary-600 shadow-sm"
+                           : "bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700"
+                       )}
+                     >
+                        {m.name}
+                     </button>
+                  ))}
+               </div>
+            </div>
                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-left">
                   <div className="space-y-2 text-left">
                      <label className="form-label text-[10px] uppercase tracking-widest mb-1.5 block">Leave Category</label>

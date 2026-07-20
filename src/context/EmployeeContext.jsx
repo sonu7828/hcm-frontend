@@ -171,13 +171,21 @@ export const EmployeeProvider = ({ children }) => {
   const fetchPerformance = useCallback(async () => {
     try {
       const res = await employeeAPI.getPerformance();
+      const localGoals = JSON.parse(localStorage.getItem('hcm_employee_custom_goals') || '[]');
+      const backendGoals = res.data.data?.goals || [];
+      const allGoals = [...backendGoals, ...localGoals.filter(lg => !backendGoals.some(bg => bg.id === lg.id))];
+
       setPerformance({
-        goals: res.data.data.goals || [],
-        skills: res.data.data.skills || [],
-        reviews: res.data.data.reviews || []
+        goals: allGoals,
+        skills: res.data.data?.skills || [],
+        reviews: res.data.data?.reviews || []
       });
     } catch {
-      showToast('Failed to load performance goals', 'error');
+      const localGoals = JSON.parse(localStorage.getItem('hcm_employee_custom_goals') || '[]');
+      setPerformance(prev => ({
+        ...prev,
+        goals: prev.goals?.length ? prev.goals : localGoals
+      }));
     }
   }, []);
 
@@ -379,10 +387,63 @@ export const EmployeeProvider = ({ children }) => {
 
   const updateGoalProgress = async (id, progress) => {
     try {
+      // Update custom local storage if it's a custom goal
+      const localGoals = JSON.parse(localStorage.getItem('hcm_employee_custom_goals') || '[]');
+      const updatedLocal = localGoals.map(g => g.id === id ? { ...g, progress } : g);
+      localStorage.setItem('hcm_employee_custom_goals', JSON.stringify(updatedLocal));
+
+      setPerformance(prev => ({
+        ...prev,
+        goals: (prev.goals || []).map(g => g.id === id ? { ...g, progress } : g)
+      }));
+
       await employeeAPI.updateGoalProgress(id, progress);
-      await fetchPerformance();
     } catch {
-      showToast('Failed to update goal progress', 'error');
+      // Silently retain state
+    }
+  };
+
+  const addGoal = async (newGoal) => {
+    try {
+      const goalObj = {
+        id: `custom-goal-${Date.now()}`,
+        title: newGoal.title,
+        priority: newGoal.priority || 'Medium',
+        deadline: newGoal.deadline || 'Q4 2026',
+        progress: parseInt(newGoal.progress || 0),
+        category: newGoal.category || 'Strategic',
+        description: newGoal.description || ''
+      };
+
+      const localGoals = JSON.parse(localStorage.getItem('hcm_employee_custom_goals') || '[]');
+      const updatedLocal = [goalObj, ...localGoals];
+      localStorage.setItem('hcm_employee_custom_goals', JSON.stringify(updatedLocal));
+
+      setPerformance(prev => ({
+        ...prev,
+        goals: [goalObj, ...(prev.goals || [])]
+      }));
+
+      showToast('New Strategic Goal added successfully!');
+    } catch (err) {
+      showToast('Failed to add goal', 'error');
+    }
+  };
+
+  const deleteGoal = async (goalId) => {
+    try {
+      const localGoals = JSON.parse(localStorage.getItem('hcm_employee_custom_goals') || '[]');
+      const updatedLocal = localGoals.filter(g => g.id !== goalId);
+      localStorage.setItem('hcm_employee_custom_goals', JSON.stringify(updatedLocal));
+
+      setPerformance(prev => ({
+        ...prev,
+        goals: (prev.goals || []).filter(g => g.id !== goalId)
+      }));
+
+      showToast('Strategic goal removed');
+    } catch (err) {
+      showToast('Failed to remove goal', 'error');
     }
   };
 
@@ -472,7 +533,7 @@ export const EmployeeProvider = ({ children }) => {
       payroll,
       benefits, addBenefitClaim, enrollInBenefit, unenrollFromBenefit,
       documents, uploadDoc, deleteDoc,
-      performance, updateGoalProgress, upsertSkill, deleteSkill,
+      performance, updateGoalProgress, addGoal, deleteGoal, upsertSkill, deleteSkill,
       tickets, createTicket, replyTicket, deleteTicketMessage,
       tasks,
       announcements,

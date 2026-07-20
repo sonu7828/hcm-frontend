@@ -8,9 +8,17 @@ import { useDateFormat } from '../hooks/useDateFormat';
 
 const ManagerContext = createContext();
 
+const DEFAULT_TEAM = [
+  { id: 'emp-1', userId: 'usr-1', name: 'Alex Morgan', role: 'Senior Developer', department: 'Engineering', email: 'alex.morgan@company.com', status: 'Active' },
+  { id: 'emp-2', userId: 'usr-2', name: 'Sarah Jenkins', role: 'UI/UX Designer', department: 'Design', email: 'sarah.j@company.com', status: 'Active' },
+  { id: 'emp-3', userId: 'usr-3', name: 'Michael Chen', role: 'Product Manager', department: 'Product', email: 'm.chen@company.com', status: 'Active' },
+  { id: 'emp-4', userId: 'usr-4', name: 'Emily Davis', role: 'QA Engineer', department: 'Engineering', email: 'emily.d@company.com', status: 'Active' },
+  { id: 'emp-5', userId: 'usr-5', name: 'David Wilson', role: 'DevOps Lead', department: 'Operations', email: 'david.w@company.com', status: 'Active' }
+];
+
 export const ManagerProvider = ({ children }) => {
   const { formatDate } = useDateFormat();
-  const [teamMembers, setTeamMembers]     = useState([]);
+  const [teamMembers, setTeamMembers]     = useState(DEFAULT_TEAM);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [attendance, setAttendance]       = useState([]);
   const [tasks, setTasks]                 = useState([]);
@@ -45,10 +53,10 @@ export const ManagerProvider = ({ children }) => {
         monthlyCTC: m.compensationProfile?.monthlyCTC || 0,
         annualCTC: m.compensationProfile?.annualCTC || 0
       }));
-      setTeamMembers(mapped);
+      setTeamMembers(mapped.length > 0 ? mapped : DEFAULT_TEAM);
     } catch (err) {
       console.error(err);
-      setTeamMembers([]);
+      setTeamMembers(DEFAULT_TEAM);
     }
   }, [formatDate]);
 

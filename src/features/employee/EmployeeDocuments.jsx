@@ -22,7 +22,7 @@ const EmployeeDocuments = () => {
   const stats = [
     { label: 'Total Files', value: documents.length, icon: FileText, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     { label: 'Cloud Space', value: '1.2 GB', icon: CloudUpload, color: 'text-primary-600', bg: 'bg-primary-50' },
-    { label: 'Verified', value: Math.max(0, documents.length - 1), icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Verified', value: documents.filter(doc => doc.verified !== false).length, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     { label: 'Access Ready', value: 'Instant', icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
   ];
 
