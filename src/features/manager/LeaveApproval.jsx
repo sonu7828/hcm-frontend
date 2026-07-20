@@ -492,6 +492,33 @@ const LeaveApproval = () => {
                   </div>
                </div>
 
+               {selectedRequest.attachment && (
+                  <div className="space-y-2 text-left">
+                     <label className="form-label text-[10px] uppercase tracking-widest flex items-center gap-2">
+                        <FileText size={16} className="text-slate-300 dark:text-slate-600" /> Attached Document
+                     </label>
+                     <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-105 dark:border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-3 truncate">
+                           <FileText size={20} className="text-primary-600 dark:text-primary-400 shrink-0" />
+                           <div className="truncate">
+                              <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{selectedRequest.attachment.name || 'Attached_Document'}</p>
+                              <p className="text-[10px] text-slate-400 font-mono">{selectedRequest.attachment.size || 'File Attachment'}</p>
+                           </div>
+                        </div>
+                        {selectedRequest.attachment.fileBase64 && (
+                           <a 
+                             href={selectedRequest.attachment.fileBase64} 
+                             download={selectedRequest.attachment.name || 'Leave_Attachment'}
+                             className="px-3 py-1.5 bg-primary-50 dark:bg-primary-950/30 text-primary-600 dark:text-primary-400 hover:bg-primary-100 rounded-lg text-xs font-bold flex items-center gap-1.5 shrink-0 transition-colors"
+                           >
+                             <Download size={14} />
+                             <span>Download</span>
+                           </a>
+                        )}
+                     </div>
+                  </div>
+               )}
+
                <div className="space-y-2 text-left">
                   <label className="form-label text-[10px] uppercase tracking-widest">Internal review note (Optional)</label>
                   <textarea className="input-field min-h-[100px] py-3 bg-slate-50 border-transparent resize-none text-sm font-medium" placeholder="Add feedback for the employee..."></textarea>

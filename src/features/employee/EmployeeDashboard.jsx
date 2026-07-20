@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -13,7 +13,9 @@ import {
   ChevronRight, 
   ArrowUpRight,
   FileText,
-  Loader2
+  Loader2,
+  Upload,
+  X
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useEmployee } from '../../context/EmployeeContext';
@@ -43,6 +45,8 @@ const EmployeeDashboard = () => {
   const [isSubmittingLeave, setIsSubmittingLeave] = useState(false);
   const [emergencyPhone, setEmergencyPhone] = useState('');
   const [leaveStep, setLeaveStep] = useState('');
+  const [leaveAttachment, setLeaveAttachment] = useState(null);
+  const leaveFileInputRef = useRef(null);
   const [isRegisteringClock, setIsRegisteringClock] = useState(false);
   const [clockStep, setClockStep] = useState('');
   const [isOpeningBoard, setIsOpeningBoard] = useState(false);
@@ -153,6 +157,31 @@ const EmployeeDashboard = () => {
   const holidayName = nextHoliday ? nextHoliday.name : 'Halloween Fest';
   const holidayType = nextHoliday ? nextHoliday.type : 'Optional Holiday';
 
+  const handleLeaveFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const kb = file.size / 1024;
+        const sizeStr = kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb.toFixed(0)} KB`;
+        setLeaveAttachment({
+          name: file.name,
+          size: sizeStr,
+          fileBase64: reader.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLeaveAttachment = (e) => {
+    e.stopPropagation();
+    setLeaveAttachment(null);
+    if (leaveFileInputRef.current) {
+      leaveFileInputRef.current.value = '';
+    }
+  };
+
   const handleRequestLeave = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -171,7 +200,8 @@ const EmployeeDashboard = () => {
       endDate,
       totalDays,
       reason: formData.get('reason'),
-      emergencyContact: formData.get('emergency')
+      emergencyContact: formData.get('emergency'),
+      attachment: leaveAttachment
     };
     
     setIsSubmittingLeave(true);
@@ -185,6 +215,10 @@ const EmployeeDashboard = () => {
       await new Promise(r => setTimeout(r, 450));
       
       await requestLeave(newReq);
+      setLeaveAttachment(null);
+      if (leaveFileInputRef.current) {
+        leaveFileInputRef.current.value = '';
+      }
       setShowLeaveModal(false);
     } catch (err) {
       showToast(err.response?.data?.error?.message || 'Failed to submit leave request', 'error');
@@ -592,8 +626,40 @@ const EmployeeDashboard = () => {
                </div>
                <div className="space-y-2">
                   <label className="form-label px-1 text-slate-700 dark:text-slate-350">Attachment (Optional)</label>
-                  <div className="h-12 border-2 border-dashed border-slate-200 dark:border-slate-750 rounded-xl flex items-center justify-center text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest bg-slate-50 dark:bg-slate-850 cursor-pointer hover:border-primary-400 transition-colors">
-                     Upload File
+                  <input 
+                    type="file" 
+                    ref={leaveFileInputRef} 
+                    onChange={handleLeaveFileChange} 
+                    className="hidden" 
+                    accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" 
+                    disabled={isSubmittingLeave}
+                  />
+                  <div 
+                    onClick={() => !isSubmittingLeave && leaveFileInputRef.current?.click()} 
+                    className="h-12 border-2 border-dashed border-slate-200 dark:border-slate-750 rounded-xl flex items-center justify-between px-4 text-xs font-semibold bg-slate-50 dark:bg-slate-850 cursor-pointer hover:border-primary-400 transition-colors"
+                  >
+                     {leaveAttachment ? (
+                       <div className="flex items-center justify-between w-full">
+                         <div className="flex items-center gap-2 truncate">
+                           <FileText size={16} className="text-primary-500 shrink-0" />
+                           <span className="truncate text-slate-800 dark:text-slate-200 font-bold">{leaveAttachment.name}</span>
+                           <span className="text-[10px] text-slate-400 font-mono">({leaveAttachment.size})</span>
+                         </div>
+                         <button 
+                           type="button" 
+                           onClick={handleRemoveLeaveAttachment} 
+                           className="p-1 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-750 transition-colors"
+                           title="Remove File"
+                         >
+                           <X size={16} />
+                         </button>
+                       </div>
+                     ) : (
+                       <div className="flex items-center justify-center w-full gap-2 text-slate-400 dark:text-slate-500 text-[10px] font-black uppercase tracking-widest">
+                          <Upload size={16} />
+                          <span>Upload File</span>
+                       </div>
+                     )}
                   </div>
                </div>
                <div className="space-y-2">

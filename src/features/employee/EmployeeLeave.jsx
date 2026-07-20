@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
@@ -18,7 +18,8 @@ import {
   ShieldCheck,
   Zap,
   Filter,
-  Download
+  Download,
+  Upload
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useEmployee } from '../../context/EmployeeContext';
@@ -32,6 +33,8 @@ const EmployeeLeave = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [emergencyPhone, setEmergencyPhone] = useState('');
+  const [leaveAttachment, setLeaveAttachment] = useState(null);
+  const leaveFileInputRef = useRef(null);
 
   const balances = [
     { label: 'Sick Leave', value: leaves.balance.sick, total: 10, icon: Stethoscope, color: 'text-rose-600', bg: 'bg-rose-50' },
@@ -70,6 +73,31 @@ const EmployeeLeave = () => {
     showToast('Leave report exported successfully');
   };
 
+  const handleLeaveFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const kb = file.size / 1024;
+        const sizeStr = kb > 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb.toFixed(0)} KB`;
+        setLeaveAttachment({
+          name: file.name,
+          size: sizeStr,
+          fileBase64: reader.result
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemoveLeaveAttachment = (e) => {
+    e.stopPropagation();
+    setLeaveAttachment(null);
+    if (leaveFileInputRef.current) {
+      leaveFileInputRef.current.value = '';
+    }
+  };
+
   const handleRequestSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -96,9 +124,14 @@ const EmployeeLeave = () => {
       endDate: formData.get('endDate'),
       reason: formData.get('reason'),
       emergencyContact: formData.get('emergency'),
-      totalDays: days
+      totalDays: days,
+      attachment: leaveAttachment
     });
     
+    setLeaveAttachment(null);
+    if (leaveFileInputRef.current) {
+      leaveFileInputRef.current.value = '';
+    }
     setIsRequestModalOpen(false);
   };
 
@@ -229,8 +262,21 @@ const EmployeeLeave = () => {
                         </td>
                         <td className="px-8 py-7 text-right">
                            <div className="space-y-1.5">
-                              <p className="text-xs font-black text-slate-500 italic">"{item.reason}"</p>
-                              <div className="flex items-center justify-end gap-2">
+                               <p className="text-xs font-black text-slate-500 italic">"{item.reason}"</p>
+                               {item.attachment && item.attachment.fileBase64 && (
+                                 <div className="flex justify-end mt-1">
+                                   <a 
+                                     href={item.attachment.fileBase64} 
+                                     download={item.attachment.name || 'Leave_Attachment'} 
+                                     className="inline-flex items-center gap-1 text-[10px] font-bold text-primary-600 dark:text-primary-400 hover:underline"
+                                     title="Download Document"
+                                   >
+                                     <FileText size={12} />
+                                     <span>{item.attachment.name}</span>
+                                   </a>
+                                 </div>
+                               )}
+                               <div className="flex items-center justify-end gap-2">
                                  {item.status === 'Pending' && (
                                    <button onClick={async () => { await cancelLeave(item.id); }} className="text-[9px] font-black text-rose-500 uppercase tracking-[0.2em] hover:underline">Cancel</button>
                                  )}
@@ -289,6 +335,44 @@ const EmployeeLeave = () => {
             <div className="space-y-2 text-left">
                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Reason for Request</label>
                <textarea name="reason" rows="3" required className="input-field py-4 bg-slate-50 border-transparent font-black resize-none" placeholder="Provide context for your manager..."></textarea>
+            </div>
+
+            <div className="space-y-2 text-left">
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">Document Attachment (Optional)</label>
+               <input 
+                 type="file" 
+                 ref={leaveFileInputRef} 
+                 onChange={handleLeaveFileChange} 
+                 className="hidden" 
+                 accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" 
+               />
+               <div 
+                 onClick={() => leaveFileInputRef.current?.click()} 
+                 className="h-14 border-2 border-dashed border-slate-200 rounded-2xl flex items-center justify-between px-4 text-xs font-bold bg-slate-50 cursor-pointer hover:border-primary-400 transition-colors"
+               >
+                  {leaveAttachment ? (
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2 truncate">
+                        <FileText size={18} className="text-primary-600 shrink-0" />
+                        <span className="truncate text-slate-800 font-bold">{leaveAttachment.name}</span>
+                        <span className="text-[10px] text-slate-400 font-mono">({leaveAttachment.size})</span>
+                      </div>
+                      <button 
+                        type="button" 
+                        onClick={handleRemoveLeaveAttachment} 
+                        className="p-1 text-slate-400 hover:text-rose-500 rounded-lg hover:bg-slate-200 transition-colors"
+                        title="Remove File"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center w-full gap-2 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                       <Upload size={18} />
+                       <span>Upload Attachment Document</span>
+                    </div>
+                  )}
+               </div>
             </div>
             
             <div className="pt-4 flex gap-4">
