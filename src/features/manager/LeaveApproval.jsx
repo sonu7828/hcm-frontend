@@ -54,14 +54,14 @@ const LeaveApproval = () => {
     if (activeModule === 'leaves') {
       return [
         { label: 'Pending Requests', value: leaveRequests.filter(r => r.status === 'Pending').length.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/20' },
-        { label: 'Approved Today', value: leaveRequests.filter(r => r.status === 'Approved' || r.status === 'Manager_approved').length.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-450', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
+        { label: 'Approved', value: leaveRequests.filter(r => r.status === 'Approved' || r.status === 'Manager_approved').length.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-450', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
         { label: 'Rejected', value: leaveRequests.filter(r => r.status === 'Rejected').length.toString(), icon: XCircle, color: 'text-rose-600 dark:text-rose-455', bg: 'bg-rose-50 dark:bg-rose-950/20' },
         { label: 'Total Leaves', value: leaveRequests.length.toString(), icon: CalendarDays, color: 'text-primary-600 dark:text-primary-400', bg: 'bg-primary-50 dark:bg-primary-950/20' },
       ];
     } else {
       return [
         { label: 'Pending HR', value: incrementRequests.filter(r => r.status === 'ManagerApproved').length.toString(), icon: Clock, color: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/20' },
-        { label: 'Approved Today', value: incrementRequests.filter(r => r.status === 'Approved').length.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-450', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
+        { label: 'Approved', value: incrementRequests.filter(r => r.status === 'Approved').length.toString(), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-450', bg: 'bg-emerald-50 dark:bg-emerald-950/20' },
         { label: 'Rejected', value: incrementRequests.filter(r => r.status === 'Rejected').length.toString(), icon: XCircle, color: 'text-rose-600 dark:text-rose-455', bg: 'bg-rose-50 dark:bg-rose-950/20' },
         { label: 'Total Requests', value: incrementRequests.length.toString(), icon: CalendarDays, color: 'text-primary-600 dark:text-primary-400', bg: 'bg-primary-50 dark:bg-primary-950/20' },
       ];
@@ -260,7 +260,7 @@ const LeaveApproval = () => {
                        activeTab === cat ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl shadow-slate-200/10 border-slate-900 dark:border-white" : "bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                     )}
                   >
-                     {cat} {cat === 'Approved' ? `(${leaveRequests.filter(r => r.status === 'Approved' || r.status === 'Manager_approved').length})` : cat === 'Pending' ? `(${leaveRequests.filter(r => r.status === 'Pending').length})` : ''}
+                     {cat}
                   </button>
                ))}
             </div>

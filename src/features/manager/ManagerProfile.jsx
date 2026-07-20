@@ -4,7 +4,7 @@ import {
   User, Shield, Settings, Briefcase, Camera, 
   MapPin, Phone, Mail, Building, Clock, Activity, 
   Lock, Bell, Smartphone, Globe, AlertTriangle, Key,
-  X, CheckCircle2, ChevronDown, Edit3, Save, Trash2, Eye, EyeOff, Users, Target, FileText
+  X, CheckCircle2, ChevronDown, Edit3, Save, Trash2, Eye, EyeOff, Users, Target, FileText, ExternalLink
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../hooks/useAuth';
@@ -409,17 +409,20 @@ const ManagerProfile = () => {
                                       <FileText size={20} />
                                    </div>
                                    <div>
-                                      {doc.documentUrl ? (
-                                        <a href={doc.documentUrl} target="_blank" rel="noreferrer" className="text-sm font-bold text-primary-600 hover:underline">{doc.title}</a>
-                                      ) : (
-                                        <p className="text-sm font-bold text-slate-700">{doc.title}</p>
-                                      )}
-                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{doc.type} • {formatDate(doc.createdAt)}</p>
+                                      <p className="text-sm font-bold text-slate-700">{doc.name || 'Untitled Document'}</p>
+                                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{doc.category || 'Document'} • {formatDate(doc.createdAt)}</p>
                                    </div>
                                 </div>
-                                <button onClick={() => deleteDoc(doc.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Delete Document">
-                                   <Trash2 size={18} />
-                                </button>
+                                <div className="flex items-center gap-2">
+                                   {doc.url && (
+                                     <a href={doc.url} target="_blank" rel="noreferrer" className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all flex items-center gap-2" title="View Document">
+                                        <ExternalLink size={18} />
+                                     </a>
+                                   )}
+                                   <button onClick={() => deleteDoc(doc.id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Delete Document">
+                                      <Trash2 size={18} />
+                                   </button>
+                                </div>
                              </div>
                           ))}
                           {documents.length === 0 && (
