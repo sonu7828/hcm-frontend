@@ -53,9 +53,12 @@ const AttendanceReview = () => {
 
   // Stats calculation
   const stats = useMemo(() => {
-    const present = attendance.filter(r => r.status === 'Present').length;
-    const late = attendance.filter(r => r.status === 'Late').length;
-    const leave = attendance.filter(r => r.status === 'On Leave').length;
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayAttendance = attendance.filter(r => r.rawDate === todayStr);
+    
+    const present = todayAttendance.filter(r => r.status === 'Present').length;
+    const late = todayAttendance.filter(r => r.status === 'Late').length;
+    const leave = todayAttendance.filter(r => r.status === 'On Leave').length;
     return [
       { label: 'Present Today', value: `${present}/${teamMembers.length}`, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
       { label: 'Late Arrivals', value: late.toString(), icon: Clock, color: 'text-amber-600', bg: 'bg-amber-50' },

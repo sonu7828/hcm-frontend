@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../utils/apiService';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { DollarSign, TrendingUp, Calendar, Download, FileText, CheckCircle } from 'lucide-react';
 import CenterModal from '../../shared/components/layout/CenterModal';
 import { useCurrency } from '../../hooks/useCurrency';
@@ -12,7 +14,7 @@ const EmployeePayroll = () => {
   const [snapshots, setSnapshots] = useState([]);
   const [loading, setLoading] = useState(true);
   
-  const { formatCurrency, getSymbol } = useCurrency();
+  const { formatCurrency, getSymbol, currencyCode } = useCurrency();
   const { formatDate } = useDateFormat();
   const { showToast } = useEmployee();
 
@@ -38,29 +40,78 @@ const EmployeePayroll = () => {
 
 
   const handleDownloadPayslip = (s) => {
-    const content = `====================================================
-               HCM PAYSLIP - ${s.month.toUpperCase()} 2026
-====================================================
-Employee Name:  ${compensation?.employee?.fullName || 'Employee'}
-Employee ID:    ${compensation?.employee?.employeeId || '-'}
-----------------------------------------------------
-Gross Salary:   ${formatCurrency(s.grossSalary)}
-Total Deductions: -${formatCurrency(s.totalDeductions)}
-Net Pay:        ${formatCurrency(s.netSalary)}
-----------------------------------------------------
-Status:         ${s.status}
-Generated On:   ${formatDate(s.createdAt)}
-====================================================
-Thank you for your hard work!
-====================================================`;
+    const doc = new jsPDF();
+    const emp = compensation?.employee;
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(30, 58, 138);
+    doc.setFont("helvetica", "bold");
+    doc.text("HCM.ai", 14, 20);
+    
+    doc.setFontSize(16);
+    doc.setTextColor(40, 40, 40);
+    doc.text("PAYSLIP", 14, 30);
+    
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(`For the month of: ${s.month.toUpperCase()} 2026`, 14, 38);
+    
+    // Divider
+    doc.setDrawColor(200, 200, 200);
+    doc.line(14, 42, 196, 42);
+    
+    // Employee Details
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`Employee Name: ${emp?.fullName || 'Employee'}`, 14, 50);
+    doc.text(`Employee ID: ${emp?.employeeId || '-'}`, 14, 56);
+    
+    doc.text(`Payment Date: ${formatDate(s.createdAt)}`, 130, 50);
+    doc.text(`Status: ${s.status}`, 130, 56);
+    
+    // Helper to fix non-ASCII currency symbols for jsPDF
+    const pdfCurrency = (amount) => {
+      const formatted = formatCurrency(amount);
+      const cleanedNum = formatted.replace(/[^\x20-\x7E]/g, '').trim();
+      return `${currencyCode || 'INR'} ${cleanedNum}`;
+    };
 
-    const element = document.createElement("a");
-    const file = new Blob([content], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = `Payslip_${s.month}_2026.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    // Salary Details Table
+    autoTable(doc, {
+      startY: 65,
+      head: [['Description', 'Amount']],
+      body: [
+        ['Gross Salary', pdfCurrency(s.grossSalary)],
+        ['Total Deductions', `-${pdfCurrency(s.totalDeductions)}`],
+      ],
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229], textColor: 255, fontStyle: 'bold' },
+      styles: { fontSize: 10, cellPadding: 6 },
+      columnStyles: { 1: { halign: 'right' } }
+    });
+    
+    const finalY = doc.lastAutoTable.finalY;
+    
+    // Net Pay Table
+    autoTable(doc, {
+      startY: finalY,
+      body: [
+        ['Net Payable', pdfCurrency(s.netSalary)],
+      ],
+      theme: 'grid',
+      styles: { fontSize: 11, fontStyle: 'bold', cellPadding: 6, fillColor: [243, 244, 246] },
+      columnStyles: { 0: { halign: 'left' }, 1: { halign: 'right' } },
+      showHead: false
+    });
+    
+    // Footer
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(150, 150, 150);
+    doc.text("This is a computer generated document. No signature is required.", 105, 280, { align: 'center' });
+    
+    doc.save(`Payslip_${s.month}_2026.pdf`);
   };
 
   if (loading) {

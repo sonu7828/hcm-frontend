@@ -95,8 +95,8 @@ export const ManagerProvider = ({ children }) => {
           mode: a.mode || 'Office',
           date: a.date ? formatDate(a.date) : formatDate(new Date()),
           rawDate,
-          checkIn: a.clockIn ? a.clockIn.split('T')[1]?.slice(0, 5) : '09:00',
-          checkOut: a.clockOut ? a.clockOut.split('T')[1]?.slice(0, 5) : '18:00',
+          checkIn: a.clockIn ? new Date(a.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '09:00 AM',
+          checkOut: a.clockOut ? new Date(a.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--',
           hours: a.totalWorkedMin ? (a.totalWorkedMin / 60).toFixed(1) + 'h' : '8.0h',
           img: a.user?.employeeProfile?.avatarUrl || ''
         };
