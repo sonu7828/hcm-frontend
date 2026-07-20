@@ -18,7 +18,7 @@ const DEFAULT_TEAM = [
 
 export const ManagerProvider = ({ children }) => {
   const { formatDate } = useDateFormat();
-  const [teamMembers, setTeamMembers]     = useState(DEFAULT_TEAM);
+  const [teamMembers, setTeamMembers]     = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [attendance, setAttendance]       = useState([]);
   const [tasks, setTasks]                 = useState([]);
@@ -53,10 +53,10 @@ export const ManagerProvider = ({ children }) => {
         monthlyCTC: m.compensationProfile?.monthlyCTC || 0,
         annualCTC: m.compensationProfile?.annualCTC || 0
       }));
-      setTeamMembers(mapped.length > 0 ? mapped : DEFAULT_TEAM);
+      setTeamMembers(mapped);
     } catch (err) {
       console.error(err);
-      setTeamMembers(DEFAULT_TEAM);
+      setTeamMembers([]);
     }
   }, [formatDate]);
 
