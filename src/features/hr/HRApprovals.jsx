@@ -308,7 +308,7 @@ const HRApprovals = () => {
                              <p className="text-[11px] font-medium text-slate-405 dark:text-slate-495 truncate italic">"{req.reason}"</p>
                           </td>
                           <td className="hcm-td text-right">
-                             {req.status === 'MANAGER_APPROVED' || req.status === 'Pending' ? (
+                             {req.status === 'MANAGER_APPROVED' || req.status === 'HR_APPROVED' || req.status === 'Pending' ? (
                                <div className="flex justify-end items-center gap-2">
                                   <button 
                                     onClick={() => setSelectedRequest(req)} 
@@ -329,12 +329,15 @@ const HRApprovals = () => {
                                   ><Check size={20} /></button>
                                </div>
                              ) : (
-                               <span className={cn(
-                                 "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded border",
-                                 req.status === 'APPROVED' || req.status === 'Approved' ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border-emerald-100 dark:border-emerald-900/30" : "bg-rose-50 dark:bg-rose-950/20 text-rose-500 dark:text-rose-455 border-rose-100 dark:border-rose-900/30"
-                               )}>
-                                 {req.status}
-                               </span>
+                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                                    req.status === 'APPROVED' || req.status === 'Approved' ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border-emerald-100 dark:border-emerald-900/30" :
+                                    req.status === 'MANAGER_APPROVED' || req.status === 'HR_APPROVED' || req.status === 'Pending' ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30" :
+                                    "bg-rose-50 dark:bg-rose-950/20 text-rose-500 dark:text-rose-455 border-rose-100 dark:border-rose-900/30"
+                                }`}>
+                                    {req.status === 'MANAGER_APPROVED' ? 'Pending HR' :
+                                     req.status === 'HR_APPROVED' ? 'Pending Admin' :
+                                     req.status === 'Pending' ? 'Pending Manager' : req.status}
+                                </span>
                              )}
                           </td>
                        </tr>
@@ -390,7 +393,7 @@ const HRApprovals = () => {
                                 <p className="text-[11px] font-medium text-slate-405 dark:text-slate-495 truncate italic" title={req.reason}>"{req.reason}"</p>
                              </td>
                              <td className="hcm-td text-right">
-                                {req.status === 'ManagerApproved' || req.status === 'Pending' ? (
+                                {req.status === 'ManagerApproved' || req.status === 'HR_APPROVED' || req.status === 'Pending' ? (
                                    <div className="flex justify-end items-center gap-2">
                                       <button 
                                         onClick={() => approveIncrementRequest(req.id)}
@@ -410,7 +413,9 @@ const HRApprovals = () => {
                                      req.status === 'ManagerApproved' ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30" :
                                      "bg-rose-50 dark:bg-rose-950/20 text-rose-500 dark:text-rose-455 border-rose-100 dark:border-rose-900/30"
                                    )}>
-                                     {req.status === 'ManagerApproved' ? 'Pending HR' : req.status}
+                                     {req.status === 'ManagerApproved' ? 'Pending HR' : 
+                                     req.status === 'HR_APPROVED' ? 'Pending Admin' :
+                                     req.status === 'Pending' ? 'Pending Manager' : req.status}
                                    </span>
                                 )}
                              </td>
