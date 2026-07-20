@@ -367,8 +367,8 @@ const SuperAdminDashboard = () => {
             </div>
             <div className="bg-slate-50 dark:bg-slate-800/30 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 flex flex-col justify-center text-center items-center">
               <ShieldCheck size={32} className="text-emerald-500 mb-3" />
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">System Health is Optimal</h3>
-              <p className="text-xs text-slate-500 max-w-[200px]">No security breaches or unauthorized access detected in the last 30 days.</p>
+              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 mb-1">System Health is {statsData?.systemHealth?.status || 'Optimal'}</h3>
+              <p className="text-xs text-slate-500 max-w-[200px]">{statsData?.systemHealth?.message || 'System operating normally.'}</p>
             </div>
           </div>
         </motion.div>

@@ -12,9 +12,11 @@ export const StatCard = ({ icon: Icon, label, value, sub, style }) => (
       <div className={`w-10 h-10 rounded-xl ${style?.bg} ${style?.text} flex items-center justify-center`}> 
         <Icon size={20} />
       </div>
-      <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full">
-        +4.8%
-      </span>
+      {style?.growth && (
+        <span className="text-[10px] font-bold text-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full">
+          {style.growth}
+        </span>
+      )}
     </div>
     <p className="card-title">{label}</p>
     <h3 className="card-value">{value}</h3>
