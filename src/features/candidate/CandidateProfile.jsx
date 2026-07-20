@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   User, Briefcase, FileText, Trash2, CheckCircle2,
@@ -18,6 +18,10 @@ const CandidateProfile = () => {
   const [activeTab, setActiveTab] = useState('personal');
   const [formData, setFormData] = useState(profile);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    setFormData(profile);
+  }, [profile]);
 
   const tabs = [
     { id: 'personal', label: 'Personal Info', icon: User },
