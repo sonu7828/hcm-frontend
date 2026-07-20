@@ -206,7 +206,7 @@ const SuperAdminDashboard = () => {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider truncate" title="Platform Orgs">Platform Orgs</p>
                   <p className="text-2xl font-black text-slate-800 dark:text-white mt-1 truncate" title={statsData?.totalOrganizations || 0}>{statsData?.totalOrganizations || 0}</p>
                   <p className="text-[10px] font-bold text-emerald-500 mt-0.5 flex items-center gap-1">
-                    <TrendingUp size={10} /> +12 this month
+                    <TrendingUp size={10} /> +{rm?.newOrgsThisMonth || 0} this month
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800/50 hover:border-violet-200 dark:hover:border-violet-800/50 transition-colors overflow-hidden">
