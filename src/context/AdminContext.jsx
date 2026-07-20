@@ -168,18 +168,19 @@ export const AdminProvider = ({ children, user }) => {
     const token = localStorage.getItem('hcm_token');
     if (!token) return;
     try {
-      const res = await api.get('/hr/payroll/snapshots', { params: monthName ? { month: monthName } : undefined });
-      const mapped = (res.data || []).map(p => ({
+      const res = await adminAPI.getAllPayslips(monthName ? { month: monthName } : undefined);
+      const payslipsArray = res.data?.data || res.data || [];
+      const mapped = payslipsArray.map(p => ({
         ...p,
         name: p.employee?.fullName || 'System Employee',
         userId: p.employee?.userId,
         employeeId: p.employeeId,
-        basic: p.grossSalary || 0, // Fallback for UI if basic is directly requested
-        bonus: p.totalContributions || 0, // Using bonus field for employer contributions in UI
-        deductions: p.totalDeductions || 0,
-        tax: 0,
-        net: p.netSalary || 0,
-        status: p.status === 'Paid' ? 'Processed' : p.status,
+        basic: p.basic || 0,
+        bonus: p.bonus || 0,
+        deductions: p.pf || 0,
+        tax: p.tax || 0,
+        net: p.netPay || 0,
+        status: p.status === 'Paid' || p.status === 'PAID' ? 'Processed' : p.status,
         img: p.employee?.user?.avatarUrl || ''
       }));
       setPayrollList(mapped);

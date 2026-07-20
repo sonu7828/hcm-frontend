@@ -61,11 +61,7 @@ const HRSettings = () => {
     }
   });
 
-  // Mock Active Sessions
-  const [activeSessions, setActiveSessions] = useState([
-    { id: 1, device: 'MacBook Pro 16"', browser: 'Chrome', ip: '192.168.1.104', lastActive: 'Current Session' },
-    { id: 2, device: 'iPhone 15 Pro', browser: 'Safari', ip: '172.20.10.2', lastActive: '2 hours ago' }
-  ]);
+  const [activeSessions, setActiveSessions] = useState([]);
 
   const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
   const [showPassword, setShowPassword] = useState({ current: false, new: false, confirm: false });

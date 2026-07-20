@@ -236,14 +236,9 @@ export const ManagerProvider = ({ children }) => {
       await managerAPI.reviewLeave(id, { status: statusToSet, managerComment: 'Approved' });
       await fetchLeaves();
       showToast('Leave approved!');
-    } catch {
-      // Demo fallback
-      const global = JSON.parse(localStorage.getItem('hcm_global_leaves') || '[]');
-      const idx = global.findIndex(l => l.id === id);
-      if (idx !== -1) { global[idx].status = statusToSet; localStorage.setItem('hcm_global_leaves', JSON.stringify(global)); }
-      setLeaveRequests(prev => prev.map(l => l.id === id ? { ...l, status: statusToSet } : l));
-      window.dispatchEvent(new CustomEvent('manager_leave_updated'));
-      showToast('Leave approved (demo)');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to approve leave', 'error');
     }
   };
 
@@ -252,13 +247,9 @@ export const ManagerProvider = ({ children }) => {
       await managerAPI.reviewLeave(id, { status: 'REJECTED', managerComment: comment });
       await fetchLeaves();
       showToast('Leave rejected.');
-    } catch {
-      const global = JSON.parse(localStorage.getItem('hcm_global_leaves') || '[]');
-      const idx = global.findIndex(l => l.id === id);
-      if (idx !== -1) { global[idx].status = 'Rejected'; localStorage.setItem('hcm_global_leaves', JSON.stringify(global)); }
-      setLeaveRequests(prev => prev.map(l => l.id === id ? { ...l, status: 'Rejected' } : l));
-      window.dispatchEvent(new CustomEvent('manager_leave_updated'));
-      showToast('Leave rejected (demo)');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to reject leave', 'error');
     }
   };
 
@@ -267,11 +258,9 @@ export const ManagerProvider = ({ children }) => {
       await managerAPI.assignTask(task);
       await fetchTasks();
       showToast('Task assigned!');
-    } catch {
-      setTasks(prev => [{ ...task, id: Date.now(), status: 'Pending' }, ...prev]);
-      const saved = JSON.parse(localStorage.getItem('manager_tasks') || '[]');
-      localStorage.setItem('manager_tasks', JSON.stringify([{ ...task, id: Date.now() }, ...saved]));
-      showToast('Task assigned (demo)');
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to assign task', 'error');
     }
   };
 
@@ -279,8 +268,9 @@ export const ManagerProvider = ({ children }) => {
     try {
       await managerAPI.updateTask(id, data);
       await fetchTasks();
-    } catch {
-      setTasks(prev => prev.map(t => t.id === id ? { ...t, ...data } : t));
+    } catch (err) {
+      console.error(err);
+      showToast('Failed to update task', 'error');
     }
   };
 

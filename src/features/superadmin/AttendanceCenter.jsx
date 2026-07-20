@@ -371,7 +371,6 @@ const AttendanceCenter = () => {
   // ── Analytics dynamic computations ───────────────────────────────────────────
   const weeklyTrend = useMemo(() => {
     const trend = [];
-    const baseFallback = [88, 92, 85, 94, 90, 87, 93];
     const today = new Date();
     
     for (let i = 6; i >= 0; i--) {
@@ -384,7 +383,7 @@ const AttendanceCenter = () => {
         const presentOrLate = dayLogs.filter(l => l.status === 'Present' || l.status === 'Late' || l.status === 'OnTime').length;
         trend.push(Math.round((presentOrLate / dayLogs.length) * 100));
       } else {
-        trend.push(baseFallback[6 - i]);
+        trend.push(0);
       }
     }
     return trend;
@@ -392,7 +391,6 @@ const AttendanceCenter = () => {
 
   const monthlyRate = useMemo(() => {
     const rates = [];
-    const baseFallback = [82, 85, 88, 91, 89, 93, 90, 88, 92, 94, 91, 89];
     const currentYear = new Date().getFullYear();
     
     for (let m = 0; m < 12; m++) {
@@ -403,7 +401,7 @@ const AttendanceCenter = () => {
         const presentOrLate = monthLogs.filter(l => l.status === 'Present' || l.status === 'Late' || l.status === 'OnTime').length;
         rates.push(Math.round((presentOrLate / monthLogs.length) * 100));
       } else {
-        rates.push(baseFallback[m]);
+        rates.push(0);
       }
     }
     return rates;
@@ -411,7 +409,6 @@ const AttendanceCenter = () => {
 
   const lateTrend = useMemo(() => {
     const trend = [];
-    const baseFallback = [12, 8, 15, 6, 10, 7, 9];
     const today = new Date();
     
     for (let i = 6; i >= 0; i--) {
@@ -424,7 +421,7 @@ const AttendanceCenter = () => {
         const lates = dayLogs.filter(l => l.status === 'Late').length;
         trend.push(lates);
       } else {
-        trend.push(baseFallback[6 - i]);
+        trend.push(0);
       }
     }
     return trend;

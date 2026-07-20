@@ -28,11 +28,6 @@ export const SettingsProvider = ({ children }) => {
       }
     } catch (error) {
       console.error('Failed to fetch global settings:', error);
-      // Fallback to local storage if API fails
-      const stored = localStorage.getItem('hcm_settings');
-      if (stored) {
-        setSettings(JSON.parse(stored));
-      }
     } finally {
       setLoadingSettings(false);
     }

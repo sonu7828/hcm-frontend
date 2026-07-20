@@ -57,7 +57,7 @@ const ComplianceModal = ({ isOpen, onClose, policy }) => {
       addPolicy({
         ...formData,
         date: formData.effectiveDate || 'TBD',
-        acknowledgments: '0/428' // Mock count
+        acknowledgments: '0'
       });
     }
     onClose();

@@ -44,20 +44,8 @@ export const PermissionProvider = ({ children }) => {
       setIsCustomOverride(isCust || false);
       setLandingPage(lPage || null);
     } catch (err) {
-      console.error("Failed to fetch permissions, falling back to local storage...", err);
-      // Fallback for demo mode
-      const userStr = localStorage.getItem('hcm_user');
-      if (userStr) {
-        const u = JSON.parse(userStr);
-        setRoleKey(u.role ? u.role.toLowerCase() : null);
-        if (u.role === 'SUPERADMIN') {
-          setIsSuperAdmin(true);
-          setPermissions('FULL_ACCESS');
-        } else {
-          // If offline, assume FULL_ACCESS to everything for demo purposes
-          setPermissions('FULL_ACCESS'); 
-        }
-      }
+      console.error("Failed to fetch permissions", err);
+      setPermissions([]);
     } finally {
       setLoading(false);
     }
