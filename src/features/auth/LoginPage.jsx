@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Eye, 
-  EyeOff, 
-  Mail, 
-  Lock, 
-  Cpu, 
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  Cpu,
   ArrowRight,
   ShieldCheck,
   Zap,
@@ -23,14 +23,14 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const { login, authError } = useAuth();
 
-const demoCredentials = {
-  superadmin: { email: 'superadmin@hcm.ai', password: 'password123' },
-  admin: { email: 'admin@hcm.ai', password: 'password123' },
-  hr: { email: 'hr@hcm.ai', password: 'password123' },
-  manager: { email: 'manager@hcm.ai', password: 'password123' },
-  employee: { email: 'employee@hcm.ai', password: 'password123' },
-  candidate: { email: 'candidate@hcm.ai', password: 'password123' },
-};
+  const demoCredentials = {
+    superadmin: { email: 'superadmin@hcm.ai', password: 'password123' },
+    admin: { email: 'admin@gmail.com', password: 'password123' },
+    hr: { email: 'hr@gmail.com', password: 'password123' },
+    manager: { email: 'manager@gmail.com', password: 'password123' },
+    employee: { email: 'employee@gmail.com', password: 'password123' },
+    candidate: { email: 'candidate@gmail.com', password: 'password123' },
+  };
 
 
   const handleRoleSelect = (roleId) => {
@@ -53,17 +53,17 @@ const demoCredentials = {
   };
 
   const roles = [
-  { id: 'superadmin', label: 'Super Admin', color: 'bg-gray-800' },
-  { id: 'admin', label: 'Admin', color: 'bg-red-500' },
-  { id: 'hr', label: 'HR', color: 'bg-blue-500' },
-  { id: 'manager', label: 'Manager', color: 'bg-purple-500' },
-  { id: 'employee', label: 'Employee', color: 'bg-green-500' },
-  { id: 'candidate', label: 'Candidate', color: 'bg-orange-500' },
-];
+    { id: 'superadmin', label: 'Super Admin', color: 'bg-gray-800' },
+    { id: 'admin', label: 'Admin', color: 'bg-red-500' },
+    { id: 'hr', label: 'HR', color: 'bg-blue-500' },
+    { id: 'manager', label: 'Manager', color: 'bg-purple-500' },
+    { id: 'employee', label: 'Employee', color: 'bg-green-500' },
+    { id: 'candidate', label: 'Candidate', color: 'bg-orange-500' },
+  ];
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-white dark:bg-slate-950 selection:bg-primary-100 dark:selection:bg-primary-900/30">
-      
+
       {/* Left Side: Visual/Branding */}
       <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-primary-900 via-primary-800 to-primary-950 relative overflow-hidden">
         {/* Abstract Background Decoration */}
@@ -118,13 +118,13 @@ const demoCredentials = {
 
       {/* Right Side: Login Form */}
       <div className="flex items-center justify-center p-8 bg-slate-50/30 lg:bg-white">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="w-full max-w-md"
         >
           <Link to="/" className="mb-8 lg:hidden flex items-center gap-2 group cursor-pointer w-fit">
-             <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center group-hover:bg-primary-700 transition-colors">
+            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center group-hover:bg-primary-700 transition-colors">
               <Cpu className="text-white" size={18} />
             </div>
             <span className="text-slate-900 text-xl font-bold tracking-tight group-hover:text-primary-600 transition-colors">HCM.ai</span>
@@ -151,8 +151,8 @@ const demoCredentials = {
                   onClick={() => handleRoleSelect(r.id)}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
-                    role === r.id 
-                      ? "bg-primary-600 text-white shadow-lg shadow-primary-200" 
+                    role === r.id
+                      ? "bg-primary-600 text-white shadow-lg shadow-primary-200"
                       : "bg-white text-slate-500 border border-slate-200 hover:border-primary-300"
                   )}
                 >
@@ -165,8 +165,8 @@ const demoCredentials = {
               <label className="block text-sm font-bold text-slate-700 mb-2">Work Email</label>
               <div className="relative group">
                 <Mail className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@company.com"
@@ -183,15 +183,15 @@ const demoCredentials = {
               </div>
               <div className="relative group">
                 <Lock className="absolute left-4 top-3.5 text-slate-400 group-focus-within:text-primary-500 transition-colors" size={20} />
-                <input 
-                  type={showPassword ? "text" : "password"} 
+                <input
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   className="input-field pl-12 pr-12"
                   required
                 />
-                <button 
+                <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-3.5 text-slate-400 hover:text-slate-600"
@@ -202,16 +202,16 @@ const demoCredentials = {
             </div>
 
             <div className="flex items-center">
-              <input 
-                id="remember" 
-                type="checkbox" 
-                className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500 cursor-pointer" 
+              <input
+                id="remember"
+                type="checkbox"
+                className="w-4 h-4 text-primary-600 border-slate-300 rounded focus:ring-primary-500 cursor-pointer"
               />
               <label htmlFor="remember" className="ml-2 text-sm font-medium text-slate-600 cursor-pointer select-none">Remember for 30 days</label>
             </div>
 
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={loading}
               className="btn-primary w-full h-12 flex items-center justify-center gap-2"
             >
@@ -237,8 +237,8 @@ const demoCredentials = {
           </form>
 
           <p className="mt-8 text-center text-sm font-medium text-slate-500">
-              Don't have an account? <Link to="/signup" className="ml-1 text-primary-600 font-bold hover:text-primary-700">Sign up as Candidate</Link>
-            </p>
+            Don't have an account? <Link to="/signup" className="ml-1 text-primary-600 font-bold hover:text-primary-700">Sign up as Candidate</Link>
+          </p>
         </motion.div>
       </div>
     </div>

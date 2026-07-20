@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
+import { useAuth } from '../../hooks/useAuth';
 import { superAdminAPI } from '../../utils/apiService';
 import {
   Users,
@@ -23,6 +24,7 @@ import ConfirmDialog from '../../shared/components/admin/ConfirmDialog';
 
 const UserManagement = () => {
   const { users, addUser, updateUser, deleteUser, organizations, roles, departments } = useSuperAdmin();
+  const { user: currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -216,37 +218,41 @@ const UserManagement = () => {
                         </span>
                       </td>
                       <td className="hcm-td p-4 text-right pr-6">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => openEditModal(user)}
-                            className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/30 rounded-xl transition-all"
-                            title="Edit User"
-                          >
-                            <Edit3 size={16} />
-                          </button>
+                        {user.email !== currentUser?.email ? (
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => openEditModal(user)}
+                              className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/30 rounded-xl transition-all"
+                              title="Edit User"
+                            >
+                              <Edit3 size={16} />
+                            </button>
 
-                          <ActionDropdown
-                            actions={[
-                              {
-                                label: user.status === 'suspended' ? 'Activate User' : 'Suspend User',
-                                icon: Power,
-                                danger: user.status !== 'suspended',
-                                onClick: () => toggleStatus(user)
-                              },
-                              {
-                                label: 'Reset Password',
-                                icon: RefreshCw,
-                                onClick: () => handleResetPassword(user)
-                              },
-                              {
-                                label: 'Delete User',
-                                icon: Trash2,
-                                danger: true,
-                                onClick: () => setUserToDelete(user)
-                              }
-                            ]}
-                          />
-                        </div>
+                            <ActionDropdown
+                              actions={[
+                                {
+                                  label: user.status === 'suspended' ? 'Activate User' : 'Suspend User',
+                                  icon: Power,
+                                  danger: user.status !== 'suspended',
+                                  onClick: () => toggleStatus(user)
+                                },
+                                {
+                                  label: 'Reset Password',
+                                  icon: RefreshCw,
+                                  onClick: () => handleResetPassword(user)
+                                },
+                                {
+                                  label: 'Delete User',
+                                  icon: Trash2,
+                                  danger: true,
+                                  onClick: () => setUserToDelete(user)
+                                }
+                              ]}
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400 italic px-2">Current User</span>
+                        )}
                       </td>
                     </motion.tr>
                   ))
@@ -300,35 +306,41 @@ const UserManagement = () => {
                     </span>
                   </div>
                   <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-50 dark:border-slate-800/40">
-                    <button
-                      onClick={() => openEditModal(user)}
-                      className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/30 rounded-xl transition-all"
-                      title="Edit User"
-                    >
-                      <Edit3 size={16} />
-                    </button>
+                    {user.email !== currentUser?.email ? (
+                      <>
+                        <button
+                          onClick={() => openEditModal(user)}
+                          className="p-2 text-slate-400 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-950/30 rounded-xl transition-all"
+                          title="Edit User"
+                        >
+                          <Edit3 size={16} />
+                        </button>
 
-                    <ActionDropdown
-                      actions={[
-                        {
-                          label: user.status === 'suspended' ? 'Activate User' : 'Suspend User',
-                          icon: Power,
-                          danger: user.status !== 'suspended',
-                          onClick: () => toggleStatus(user)
-                        },
-                        {
-                          label: 'Reset Password',
-                          icon: RefreshCw,
-                          onClick: () => handleResetPassword(user)
-                        },
-                        {
-                          label: 'Delete User',
-                          icon: Trash2,
-                          danger: true,
-                          onClick: () => setUserToDelete(user)
-                        }
-                      ]}
-                    />
+                        <ActionDropdown
+                          actions={[
+                            {
+                              label: user.status === 'suspended' ? 'Activate User' : 'Suspend User',
+                              icon: Power,
+                              danger: user.status !== 'suspended',
+                              onClick: () => toggleStatus(user)
+                            },
+                            {
+                              label: 'Reset Password',
+                              icon: RefreshCw,
+                              onClick: () => handleResetPassword(user)
+                            },
+                            {
+                              label: 'Delete User',
+                              icon: Trash2,
+                              danger: true,
+                              onClick: () => setUserToDelete(user)
+                            }
+                          ]}
+                        />
+                      </>
+                    ) : (
+                      <span className="text-xs text-slate-400 italic px-2">Current User</span>
+                    )}
                   </div>
                 </motion.div>
               ))
