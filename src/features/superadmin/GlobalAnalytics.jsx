@@ -29,14 +29,14 @@ const cardVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: 'easeOut' } },
 };
 
-  const GlobalAnalytics = () => {
+const GlobalAnalytics = () => {
   const [timeRange, setTimeRange] = useState('30d');
   const [isSimulating, setIsSimulating] = useState(true);
   const [systemLoad, setSystemLoad] = useState(42.5);
   const [activeSockets, setActiveSockets] = useState(1240);
   const [latency, setLatency] = useState(24);
   const [showToast, setShowToast] = useState(false);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [statsData, setStatsData] = useState(null);
   const [error, setError] = useState(null);
@@ -59,26 +59,7 @@ const cardVariants = {
     fetchAnalytics();
   }, [timeRange]);
 
-  // Live simulation tick for premium interactive feel
-  useEffect(() => {
-    if (!isSimulating) return;
-    const interval = setInterval(() => {
-      setSystemLoad(prev => {
-        const change = (Math.random() - 0.5) * 4;
-        return Math.max(10, Math.min(95, parseFloat((prev + change).toFixed(1))));
-      });
-      setActiveSockets(prev => {
-        const change = Math.round((Math.random() - 0.5) * 20);
-        return Math.max(100, prev + change);
-      });
-      setLatency(prev => {
-        const change = Math.round((Math.random() - 0.5) * 4);
-        return Math.max(10, Math.min(120, prev + change));
-      });
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, [isSimulating]);
+  
 
   const triggerExport = async () => {
     setShowToast(true);
@@ -175,11 +156,10 @@ const cardVariants = {
             <button
               key={range}
               onClick={() => setTimeRange(range)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase transition-all ${
-                timeRange === range
+              className={`px-3 py-1.5 rounded-lg text-xs font-extrabold uppercase transition-all ${timeRange === range
                   ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm'
                   : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-              }`}
+                }`}
             >
               {range}
             </button>
@@ -209,140 +189,6 @@ const cardVariants = {
         ))}
       </div>
 
-      {/* Interactive Charts & Telemetry */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Real-time System Load Chart - 2 Cols */}
-        <motion.div
-          variants={cardVariants}
-          className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/60 p-6 shadow-soft flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <Cpu size={18} className="text-violet-600 animate-spin" style={{ animationDuration: '6s' }} />
-              <h2 className="hcm-section-heading">
-                Live Server Cluster Load
-              </h2>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-1.5">
-                <span className={`w-2.5 h-2.5 rounded-full ${isSimulating ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                  {isSimulating ? 'Live Streaming' : 'Paused'}
-                </span>
-              </div>
-              <button
-                onClick={() => setIsSimulating(!isSimulating)}
-                className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-100 dark:border-slate-800 transition-all"
-              >
-                {isSimulating ? 'Pause' : 'Resume'}
-              </button>
-            </div>
-          </div>
-
-          {/* SVG Animated Sparkline representing load */}
-          <div className="h-[220px] relative w-full flex items-end justify-center mb-4">
-            <div className="absolute top-0 left-0 w-full h-full flex flex-col justify-between pointer-events-none opacity-20">
-              <div className="w-full border-t border-dashed border-slate-400" />
-              <div className="w-full border-t border-dashed border-slate-400" />
-              <div className="w-full border-t border-dashed border-slate-400" />
-            </div>
-            
-            {/* Visual Vector Grid Graph */}
-            <svg viewBox="0 0 500 200" className="w-full h-full overflow-visible">
-              <defs>
-                <linearGradient id="loadGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.4" />
-                  <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0.0" />
-                </linearGradient>
-              </defs>
-              {/* Dynamic simulated path based on current state */}
-              <path
-                d={`M 0 ${160 - systemLoad} Q 80 ${130 - systemLoad * 0.4} 150 ${145 - systemLoad * 0.8} T 300 ${180 - systemLoad * 1.2} T 420 ${100 - systemLoad * 0.6} T 500 ${190 - systemLoad}`}
-                fill="url(#loadGradient)"
-                stroke="#8b5cf6"
-                strokeWidth="3.5"
-                strokeLinecap="round"
-                className="transition-all duration-[3000ms] ease-in-out"
-              />
-              <circle
-                cx="500"
-                cy={190 - systemLoad}
-                r="6"
-                fill="#8b5cf6"
-                className="transition-all duration-[3000ms] ease-in-out animate-pulse"
-              />
-            </svg>
-          </div>
-
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-50 dark:border-slate-800/80">
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Average CPU Load</p>
-              <p className="text-xl font-black text-slate-800 dark:text-white mt-1 transition-all">{systemLoad}%</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Kubernetes Nodes</p>
-              <p className="text-xl font-black text-slate-800 dark:text-white mt-1">24 Active</p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Peak Hour Latency</p>
-              <p className="text-xl font-black text-slate-800 dark:text-white mt-1">42ms</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* System Health / Hubs list */}
-        <motion.div
-          variants={cardVariants}
-          className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800/60 p-6 shadow-soft flex flex-col justify-between"
-        >
-          <div>
-            <div className="flex items-center gap-2 mb-6">
-              <Globe size={18} className="text-emerald-500 animate-pulse" />
-              <h2 className="hcm-section-heading">
-                Global Edge Regions
-              </h2>
-            </div>
-            
-            <div className="space-y-4">
-              {[
-                { name: 'US-East (Virginia)', lat: '12ms', status: 'Healthy', load: '48%' },
-                { name: 'EU-West (Frankfurt)', lat: '28ms', status: 'Healthy', load: '65%' },
-                { name: 'AP-South (Singapore)', lat: '36ms', status: 'Optimal', load: '32%' },
-                { name: 'US-West (Oregon)', lat: '15ms', status: 'Healthy', load: '58%' },
-                { name: 'SA-East (São Paulo)', lat: '52ms', status: 'Degraded', load: '84%', warning: true }
-              ].map((hub, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all"
-                >
-                  <div className="space-y-0.5">
-                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{hub.name}</p>
-                    <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                      <span>Latency: {hub.lat}</span>
-                      <span>•</span>
-                      <span>Load: {hub.load}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${hub.warning ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${hub.warning ? 'text-amber-600' : 'text-emerald-600'}`}>
-                      {hub.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-50 dark:border-slate-800/80 text-xs font-bold text-slate-400 flex items-center gap-2">
-            <ShieldAlert size={14} className="text-amber-500 animate-bounce" />
-            <span>SA-East experiences transient cloud networking throttling.</span>
-          </div>
-        </motion.div>
-      </div>
-
       {/* Module Utilization Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Module Popularity */}
@@ -362,11 +208,11 @@ const cardVariants = {
 
           <div className="space-y-4">
             {[
-              { module: 'Payroll Center & Billing', pct: '88%', width: 'w-[88%]', color: 'bg-violet-500' },
-              { module: 'Time & Attendance Tracker', pct: '74%', width: 'w-[74%]', color: 'bg-emerald-500' },
-              { module: 'AI Recruiter & Resume AI', pct: '62%', width: 'w-[62%]', color: 'bg-blue-500' },
-              { module: 'Benefits & Health HCM', pct: '49%', width: 'w-[49%]', color: 'bg-amber-500' },
-              { module: 'Compliance & Audits Center', pct: '38%', width: 'w-[38%]', color: 'bg-rose-500' }
+              { module: 'Payroll Center & Billing', pct: `${statsData?.moduleUtilization?.payroll || 0}%`, width: `${statsData?.moduleUtilization?.payroll || 0}%`, color: 'bg-violet-500' },
+              { module: 'Time & Attendance Tracker', pct: `${statsData?.moduleUtilization?.attendance || 0}%`, width: `${statsData?.moduleUtilization?.attendance || 0}%`, color: 'bg-emerald-500' },
+              { module: 'AI Recruiter & Resume AI', pct: `${statsData?.moduleUtilization?.ai || 0}%`, width: `${statsData?.moduleUtilization?.ai || 0}%`, color: 'bg-blue-500' },
+              { module: 'Benefits & Health HCM', pct: `${statsData?.moduleUtilization?.benefits || 0}%`, width: `${statsData?.moduleUtilization?.benefits || 0}%`, color: 'bg-amber-500' },
+              { module: 'Compliance & Audits Center', pct: `${statsData?.moduleUtilization?.compliance || 0}%`, width: `${statsData?.moduleUtilization?.compliance || 0}%`, color: 'bg-rose-500' }
             ].map((mod, idx) => (
               <div key={idx} className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-600 dark:text-slate-300">
@@ -374,7 +220,7 @@ const cardVariants = {
                   <span>{mod.pct}</span>
                 </div>
                 <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className={`h-full ${mod.color} ${mod.width} transition-all duration-1000`} />
+                  <div className={`h-full ${mod.color} transition-all duration-1000`} style={{ width: mod.width }} />
                 </div>
               </div>
             ))}
@@ -389,31 +235,28 @@ const cardVariants = {
           <div className="flex items-center justify-between mb-6">
             <h3 className="hcm-section-heading flex items-center gap-2">
               <Users size={18} className="text-emerald-500" />
-              API Key & System Audits
+              System Audits
             </h3>
             <span className="text-[10px] font-bold text-emerald-500 flex items-center gap-1">
-              <Zap size={10} className="animate-pulse" /> 18 Active Keys
+              <Zap size={10} className="animate-pulse" /> Live Logs
             </span>
           </div>
 
           <div className="space-y-3">
-            {[
-              { label: 'Production JWT Sync Key', role: 'System Admin', scope: 'global:write', age: '2 hours ago' },
-              { label: 'AI Engine Integration Key', role: 'Candidate Portal', scope: 'ai:generate', age: '4 hours ago' },
-              { label: 'HR Webhook Webhook Key', role: 'Recruiting Service', scope: 'webhooks:post', age: '1 day ago' },
-              { label: 'Payroll Export Token', role: 'Executive Financials', scope: 'billing:read', age: '3 days ago' }
-            ].map((key, idx) => (
+            {statsData?.recentAudits?.map((audit, idx) => (
               <div
                 key={idx}
                 className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-800/30 border border-slate-100 dark:border-slate-800 text-xs font-bold"
               >
                 <div>
-                  <p className="text-slate-700 dark:text-slate-200">{key.label}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Role: {key.role} • Scope: {key.scope}</p>
+                  <p className="text-slate-700 dark:text-slate-200">{audit.action}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5 truncate max-w-[200px]" title={audit.details}>Role: {audit.user?.role || 'SYSTEM'} • {audit.details}</p>
                 </div>
-                <span className="text-[10px] text-slate-400 font-medium shrink-0">{key.age}</span>
+                <span className="text-[10px] text-slate-400 font-medium shrink-0">
+                  {new Date(audit.createdAt).toLocaleDateString()}
+                </span>
               </div>
-            ))}
+            )) || <p className="text-sm text-slate-500">No recent audits found.</p>}
           </div>
         </motion.div>
       </div>
