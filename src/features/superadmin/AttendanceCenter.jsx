@@ -164,6 +164,7 @@ const AttendanceCenter = () => {
   // ── API State and Data Fetching ──────────────────────
   const [globalAttendance, setGlobalAttendance] = useState([]);
   const [leavesData, setLeavesData] = useState([]);
+  const [dbShifts, setDbShifts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
   const [viewRecord, setViewRecord] = useState(null);
@@ -172,12 +173,18 @@ const AttendanceCenter = () => {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [attRes, leaveRes] = await Promise.all([
+      const [attRes, leaveRes, shiftRes] = await Promise.all([
         adminAPI.getAllAttendance(),
-        adminAPI.getAllLeaves()
+        adminAPI.getAllLeaves(),
+        adminAPI.getShifts()
       ]);
       if (attRes.data?.success) setGlobalAttendance(attRes.data.data);
       if (leaveRes.data?.success) setLeavesData(leaveRes.data.data);
+      if (Array.isArray(shiftRes?.data)) {
+        setDbShifts(shiftRes.data);
+      } else if (shiftRes?.data?.success) {
+        setDbShifts(shiftRes.data.data);
+      }
     } catch (err) {
       console.error('Failed to load attendance data', err);
       toast('Failed to load data from server', 'error');
@@ -359,14 +366,47 @@ const AttendanceCenter = () => {
 
   // ── Shift Data ─────────────────────────────────────────────────────────────
   const shifts = useMemo(() => {
-    const total = employees.length || 5;
-    return [
-      { name: 'Morning Shift',  icon: Sun,      time: '06:00–14:00', assigned: Math.ceil(total * 0.3),  active: Math.ceil(total * 0.28), color: 'text-amber-500',   bg: 'bg-amber-50 dark:bg-amber-950/20',   bar: 'bg-gradient-to-r from-amber-400 to-orange-500'  },
-      { name: 'General Shift',  icon: Briefcase,time: '09:00–18:00', assigned: Math.ceil(total * 0.5),  active: Math.ceil(total * 0.45), color: 'text-blue-500',    bg: 'bg-blue-50 dark:bg-blue-950/20',     bar: 'bg-gradient-to-r from-blue-400 to-indigo-500'   },
-      { name: 'Evening Shift',  icon: Sunset,   time: '14:00–22:00', assigned: Math.ceil(total * 0.15), active: Math.ceil(total * 0.12), color: 'text-violet-500',  bg: 'bg-violet-50 dark:bg-violet-950/20', bar: 'bg-gradient-to-r from-violet-400 to-purple-500' },
-      { name: 'Night Shift',    icon: Moon,     time: '22:00–06:00', assigned: Math.ceil(total * 0.05), active: Math.ceil(total * 0.04), color: 'text-slate-500',   bg: 'bg-slate-50 dark:bg-slate-800/40',   bar: 'bg-gradient-to-r from-slate-400 to-slate-600'   },
+    const total = employees.length || 1;
+    
+    const countShift = (startH, endH, isNight = false) => {
+      if (!attendanceRecords || attendanceRecords.length === 0) return 0;
+      return attendanceRecords.filter(r => {
+        if (!r.clockIn || r.clockIn === '—') return false;
+        const hour = parseInt(r.clockIn.split(':')[0], 10);
+        if (isNight) {
+          return hour >= startH || hour < endH;
+        }
+        return hour >= startH && hour < endH;
+      }).length;
+    };
+
+    if (!dbShifts || dbShifts.length === 0) return [];
+
+    const colors = [
+      { color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/20', bar: 'bg-gradient-to-r from-amber-400 to-orange-500', icon: Sun },
+      { color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/20', bar: 'bg-gradient-to-r from-blue-400 to-indigo-500', icon: Briefcase },
+      { color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950/20', bar: 'bg-gradient-to-r from-violet-400 to-purple-500', icon: Sunset },
+      { color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-800/40', bar: 'bg-gradient-to-r from-slate-400 to-slate-600', icon: Moon }
     ];
-  }, [employees]);
+
+    return dbShifts.map((s, i) => {
+      const startH = parseInt(s.startTime?.split(':')[0] || '9', 10);
+      const endH = parseInt(s.endTime?.split(':')[0] || '18', 10);
+      const isNight = startH > endH;
+      const theme = colors[i % colors.length];
+
+      return {
+        name: s.name,
+        icon: theme.icon,
+        time: `${s.startTime || '09:00'}–${s.endTime || '18:00'}`,
+        assigned: Math.ceil(total / Math.max(dbShifts.length, 1)),
+        active: countShift(startH, endH, isNight),
+        color: theme.color,
+        bg: theme.bg,
+        bar: theme.bar
+      };
+    });
+  }, [employees, attendanceRecords, dbShifts]);
 
   // ── Analytics dynamic computations ───────────────────────────────────────────
   const weeklyTrend = useMemo(() => {
@@ -378,7 +418,10 @@ const AttendanceCenter = () => {
       d.setDate(today.getDate() - i);
       const dateStr = formatDateISO(d);
       
-      const dayLogs = globalAttendance.filter(l => l.date === dateStr);
+      const dayLogs = globalAttendance.filter(l => {
+        if (!l.date) return false;
+        return new Date(l.date).toISOString().split('T')[0] === dateStr;
+      });
       if (dayLogs.length > 0) {
         const presentOrLate = dayLogs.filter(l => l.status === 'Present' || l.status === 'Late' || l.status === 'OnTime').length;
         trend.push(Math.round((presentOrLate / dayLogs.length) * 100));
@@ -395,7 +438,10 @@ const AttendanceCenter = () => {
     
     for (let m = 0; m < 12; m++) {
       const monthStr = `${currentYear}-${String(m + 1).padStart(2, '0')}`;
-      const monthLogs = globalAttendance.filter(l => l.date && l.date.startsWith(monthStr));
+      const monthLogs = globalAttendance.filter(l => {
+        if (!l.date) return false;
+        return new Date(l.date).toISOString().split('T')[0].startsWith(monthStr);
+      });
       
       if (monthLogs.length > 0) {
         const presentOrLate = monthLogs.filter(l => l.status === 'Present' || l.status === 'Late' || l.status === 'OnTime').length;
@@ -416,7 +462,10 @@ const AttendanceCenter = () => {
       d.setDate(today.getDate() - i);
       const dateStr = formatDateISO(d);
       
-      const dayLogs = globalAttendance.filter(l => l.date === dateStr);
+      const dayLogs = globalAttendance.filter(l => {
+        if (!l.date) return false;
+        return new Date(l.date).toISOString().split('T')[0] === dateStr;
+      });
       if (dayLogs.length > 0) {
         const lates = dayLogs.filter(l => l.status === 'Late').length;
         trend.push(lates);
@@ -443,11 +492,11 @@ const AttendanceCenter = () => {
   const deptAttendance = useMemo(() => {
     return departments.slice(0, 5).map((dept, i) => {
       const deptEmps = attendanceRecords.filter(r => r.department === dept.name);
-      const total = deptEmps.length || (dept.count || 3);
-      const present = deptEmps.filter(r => r.status === 'Present').length || Math.ceil(total * 0.75);
-      const absent  = deptEmps.filter(r => r.status === 'Absent').length  || Math.ceil(total * 0.1);
-      const leave   = deptEmps.filter(r => r.status === 'Leave').length   || Math.ceil(total * 0.15);
-      const pct = Math.round((present / Math.max(total, 1)) * 100);
+      const total = deptEmps.length;
+      const present = deptEmps.filter(r => r.status === 'Present').length;
+      const absent  = deptEmps.filter(r => r.status === 'Absent').length;
+      const leave   = deptEmps.filter(r => r.status === 'Leave').length;
+      const pct = total > 0 ? Math.round((present / total) * 100) : 0;
       return { name: dept.name, total, present, absent, leave, pct };
     });
   }, [departments, attendanceRecords]);

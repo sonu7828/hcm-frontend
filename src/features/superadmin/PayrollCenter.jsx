@@ -289,8 +289,11 @@ const PayrollCenter = () => {
     }
   };
 
-  const handleDeleteRecord = async (id) => {
-    const record = payrollHistory.find(r => r.id === id);
+  const handleDeleteRecord = async (record) => {
+    if (record.status === 'Unprocessed') {
+      toast('Cannot delete an unprocessed payroll record.', 'warning');
+      return;
+    }
     setRecordToDelete(record);
   };
 
@@ -298,7 +301,7 @@ const PayrollCenter = () => {
     if (recordToDelete) {
       const success = await deletePayrollRecord(recordToDelete.id);
       if (success) {
-        toast('Payroll record deleted', 'error');
+        toast('Payroll record deleted', 'success');
       } else {
         toast('Failed to delete payroll record', 'error');
       }
@@ -653,7 +656,7 @@ const PayrollCenter = () => {
                             <ActionDropdown
                               actions={[
                                 { label: 'Edit Record', icon: Edit2, onClick: () => handleEditRecord(p) },
-                                { label: 'Delete Record', icon: Trash2, danger: true, onClick: () => handleDeleteRecord(p.id) }
+                                { label: 'Delete Record', icon: Trash2, danger: true, onClick: () => handleDeleteRecord(p) }
                               ]}
                             />
                           </div>
@@ -706,7 +709,7 @@ const PayrollCenter = () => {
                         <ActionDropdown
                           actions={[
                             { label: 'Edit Record', icon: Edit2, onClick: () => handleEditRecord(p) },
-                            { label: 'Delete Record', icon: Trash2, danger: true, onClick: () => setRecordToDelete(p) }
+                            { label: 'Delete Record', icon: Trash2, danger: true, onClick: () => handleDeleteRecord(p) }
                           ]}
                         />
                       </div>
