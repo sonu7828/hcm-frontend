@@ -20,7 +20,7 @@ import { cn } from '../../../utils/cn';
 
 const Sidebar = ({ collapsed, setCollapsed, allRoles, onItemClick }) => {
   const { logout, effectiveRole } = useAuth();
-  const { hasModuleAccess } = usePermissionContext();
+  const { hasModuleAccess, roleName } = usePermissionContext();
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
   const isExpanded = !collapsed || isHovered;
@@ -192,7 +192,7 @@ const Sidebar = ({ collapsed, setCollapsed, allRoles, onItemClick }) => {
                 onChange={(e) => switchScope(e.target.value)}
                 className="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 pl-2 pr-6 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 capitalize cursor-pointer transition-all"
               >
-                <option value={baseFunctionalScope}>{baseFunctionalScope} Console</option>
+                <option value={baseFunctionalScope}>{roleName || baseFunctionalScope} Console</option>
                 <option value="employee">Employee Console</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
@@ -203,7 +203,7 @@ const Sidebar = ({ collapsed, setCollapsed, allRoles, onItemClick }) => {
             <div className="flex items-center gap-2 mt-1">
               <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse shrink-0" />
               <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 capitalize truncate">
-                {currentScope} Console
+                {currentScope === baseFunctionalScope ? (roleName || currentScope) : currentScope} Console
               </h4>
             </div>
           )}

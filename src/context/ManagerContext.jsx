@@ -243,10 +243,10 @@ export const ManagerProvider = ({ children }) => {
     try {
       await managerAPI.reviewLeave(id, { status: statusToSet, managerComment: 'Approved' });
       await fetchLeaves();
-      showToast('Leave approved!');
     } catch (err) {
       console.error(err);
       showToast('Failed to approve leave', 'error');
+      throw err;
     }
   };
 
@@ -254,10 +254,10 @@ export const ManagerProvider = ({ children }) => {
     try {
       await managerAPI.reviewLeave(id, { status: 'REJECTED', managerComment: comment });
       await fetchLeaves();
-      showToast('Leave rejected.');
     } catch (err) {
       console.error(err);
       showToast('Failed to reject leave', 'error');
+      throw err;
     }
   };
 

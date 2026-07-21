@@ -39,8 +39,7 @@ export const HRProvider = ({ children }) => {
   }, [onboarding]);
 
   const showToast = (message, type = 'success') => {
-    setToast({ message, visible: true, type });
-    setTimeout(() => setToast({ message: '', visible: false, type: 'success' }), 3000);
+    window.dispatchEvent(new CustomEvent('app_toast', { detail: { message, type } }));
   };
 
   // ── FETCH ──
