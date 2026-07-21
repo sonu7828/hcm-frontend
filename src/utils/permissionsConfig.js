@@ -23,6 +23,11 @@ export const ROLE_MODULES = {
     { id: 'compliance', label: 'Compliance' },
     { id: 'integrations', label: 'Integrations' },
     { id: 'billing', label: 'Billing' },
+    { id: 'shift_management', label: 'Shift Management' },
+    { id: 'overtime_rules', label: 'Overtime Rules' },
+    { id: 'resignations', label: 'Resignations' },
+    { id: 'reimbursements', label: 'Reimbursements' },
+    { id: 'approval_workflows', label: 'Approval Workflows' },
     { id: 'audit_logs', label: 'Audit Logs' },
     { id: 'reports', label: 'Reports' },
     { id: 'settings', label: 'Settings' },
@@ -35,6 +40,9 @@ export const ROLE_MODULES = {
     { id: 'hiring_pipeline', label: 'Hiring Pipeline' },
     { id: 'offer_management', label: 'Offer Management' },
     { id: 'onboarding', label: 'Onboarding' },
+    { id: 'offboarding_resignations', label: 'Offboarding & Resignations' },
+    { id: 'payroll_operations', label: 'Payroll Operations' },
+    { id: 'approvals', label: 'Approvals' },
     { id: 'reports', label: 'Reports' },
     { id: 'messages', label: 'Messages' },
   ],
@@ -46,6 +54,8 @@ export const ROLE_MODULES = {
     { id: 'kpi_tracking', label: 'KPI Tracking' },
     { id: 'tasks', label: 'Tasks' },
     { id: 'reviews', label: 'Reviews' },
+    { id: 'team_resignations', label: 'Team Resignations' },
+    { id: 'reimbursements', label: 'Reimbursements' },
     { id: 'reports', label: 'Reports' },
   ],
   EMPLOYEE: [
@@ -58,12 +68,17 @@ export const ROLE_MODULES = {
     { id: 'documents', label: 'Documents' },
     { id: 'performance', label: 'Performance' },
     { id: 'help_desk', label: 'Help Desk' },
+    { id: 'compliance', label: 'Compliance' },
+    { id: 'resignation', label: 'Resignation' },
   ],
   CANDIDATE: [
     { id: 'dashboard', label: 'Dashboard' },
     { id: 'browse_jobs', label: 'Browse Jobs' },
     { id: 'my_applications', label: 'My Applications' },
     { id: 'resume_builder', label: 'Resume Builder' },
+    { id: 'ai_score', label: 'AI Resume Score' },
+    { id: 'interview_schedule', label: 'Interview Schedule' },
+    { id: 'notifications', label: 'Notifications' },
     { id: 'messages', label: 'Messages' },
     { id: 'offers', label: 'Offers' },
     { id: 'settings', label: 'Settings' },
@@ -73,7 +88,7 @@ export const ROLE_MODULES = {
 // Defines the available actions for specific modules
 // For now, allow all actions for all modules so that everything is clickable in the Permissions Matrix.
 export const MODULE_ACTIONS = new Proxy({}, {
-  get: function(target, prop) {
+  get: function (target, prop) {
     return ['view', 'create', 'edit', 'delete', 'approve', 'manage'];
   }
 });

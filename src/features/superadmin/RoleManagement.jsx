@@ -20,21 +20,50 @@ const PERMISSION_OPTIONS = [
   { id: 'manage_roles', label: 'Manage Security Roles', desc: 'Establish and modify role clearance groups', category: 'Platform' },
   { id: 'manage_departments', label: 'Manage Departments', desc: 'Reorganize company departments and metadata', category: 'Platform' },
   { id: 'view_audit_logs', label: 'View Platform Audit Logs', desc: 'Investigate operational changes and log traces', category: 'Platform' },
+  
+  // Admin Module
+  { id: 'admin_org_setup', label: 'Org Setup', desc: 'Configure core organization settings', category: 'Admin' },
+  { id: 'admin_payroll_center', label: 'Payroll Center', desc: 'Manage payroll cycles and config', category: 'Admin' },
+  { id: 'admin_holidays', label: 'Holidays', desc: 'Manage holiday calendar', category: 'Admin' },
+  { id: 'admin_benefits', label: 'Benefits Config', desc: 'Configure company benefits', category: 'Admin' },
+  { id: 'admin_ai', label: 'AI Center', desc: 'Manage AI integrations and configurations', category: 'Admin' },
+  { id: 'admin_compliance', label: 'Compliance', desc: 'Monitor regulatory compliance', category: 'Admin' },
+  { id: 'admin_integrations', label: 'Integrations', desc: 'Manage third-party integrations', category: 'Admin' },
+  { id: 'admin_billing', label: 'Billing', desc: 'Manage subscription and billing', category: 'Admin' },
+  { id: 'admin_reports', label: 'Reports', desc: 'View global platform reports', category: 'Admin' },
+  { id: 'admin_settings', label: 'Settings', desc: 'Configure platform settings', category: 'Admin' },
 
   // HR Module
   { id: 'hr_candidates', label: 'Manage Candidates', desc: 'View and process candidate applications', category: 'HR' },
   { id: 'hr_interviews', label: 'Schedule Interviews', desc: 'Manage interview pipelines', category: 'HR' },
   { id: 'hr_onboarding', label: 'Manage Onboarding', desc: 'Run onboarding checklists for new hires', category: 'HR' },
+  { id: 'hr_offboarding', label: 'Offboarding', desc: 'Manage offboarding and resignations', category: 'HR' },
+  { id: 'hr_payroll', label: 'Payroll Operations', desc: 'Process HR payroll operations', category: 'HR' },
+  { id: 'hr_approvals', label: 'Approvals', desc: 'Manage HR approvals', category: 'HR' },
 
   // Manager Module
   { id: 'mgr_attendance', label: 'Attendance Review', desc: 'Review team attendance logs', category: 'Manager' },
   { id: 'mgr_leave', label: 'Leave Approval', desc: 'Approve or reject team leave requests', category: 'Manager' },
   { id: 'mgr_tasks', label: 'Task Management', desc: 'Assign and evaluate tasks', category: 'Manager' },
+  { id: 'mgr_team_resignations', label: 'Team Resignations', desc: 'Handle team member resignations', category: 'Manager' },
+  { id: 'mgr_reimbursements', label: 'Reimbursements', desc: 'Review team reimbursements', category: 'Manager' },
 
   // Employee Module
   { id: 'emp_payroll', label: 'View Payroll', desc: 'Access payslips and salary info', category: 'Employee' },
   { id: 'emp_attendance', label: 'Log Attendance', desc: 'Clock in and clock out', category: 'Employee' },
   { id: 'emp_documents', label: 'View Documents', desc: 'Access employee documents', category: 'Employee' },
+  { id: 'emp_compliance', label: 'Compliance', desc: 'View compliance policies', category: 'Employee' },
+  { id: 'emp_resignation', label: 'Resignation', desc: 'Submit and view resignation status', category: 'Employee' },
+
+  // Candidate Module
+  { id: 'cand_dashboard', label: 'Dashboard', desc: 'Access candidate dashboard', category: 'Candidate' },
+  { id: 'cand_browse_jobs', label: 'Browse Jobs', desc: 'Search for open roles', category: 'Candidate' },
+  { id: 'cand_applications', label: 'My Applications', desc: 'Track application status', category: 'Candidate' },
+  { id: 'cand_resume', label: 'Resume Builder', desc: 'Build and manage resumes', category: 'Candidate' },
+  { id: 'cand_ai_score', label: 'AI Resume Score', desc: 'View AI-driven resume scoring', category: 'Candidate' },
+  { id: 'cand_interviews', label: 'Interview Schedule', desc: 'View scheduled interviews', category: 'Candidate' },
+  { id: 'cand_notifications', label: 'Notifications', desc: 'View candidate notifications', category: 'Candidate' },
+  { id: 'cand_offers', label: 'Offers', desc: 'View and accept job offers', category: 'Candidate' },
 ];
 
 const RoleManagement = () => {
@@ -55,17 +84,45 @@ const RoleManagement = () => {
     manage_departments: { module: 'departments', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
     view_audit_logs: { module: 'audit_logs', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
     
+    // Admin Module
+    admin_org_setup: { module: 'org_setup', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_payroll_center: { module: 'payroll_center', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_holidays: { module: 'holidays', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_benefits: { module: 'benefits_config', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_ai: { module: 'ai_center', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_compliance: { module: 'compliance', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_integrations: { module: 'integrations', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_billing: { module: 'billing', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_reports: { module: 'reports', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    admin_settings: { module: 'settings', actions: ['view', 'create', 'edit', 'delete', 'manage'] },
+    
     hr_candidates: { module: 'candidates', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
     hr_interviews: { module: 'interviews', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
     hr_onboarding: { module: 'onboarding', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
+    hr_offboarding: { module: 'offboarding_resignations', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
+    hr_payroll: { module: 'payroll_operations', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
+    hr_approvals: { module: 'approvals', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
 
     mgr_attendance: { module: 'attendance_review', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
     mgr_leave: { module: 'leave_approval', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
     mgr_tasks: { module: 'tasks', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
+    mgr_team_resignations: { module: 'team_resignations', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
+    mgr_reimbursements: { module: 'reimbursements', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
 
     emp_payroll: { module: 'payroll', actions: ['view'] },
     emp_attendance: { module: 'attendance', actions: ['view', 'create'] },
     emp_documents: { module: 'documents', actions: ['view', 'create', 'edit', 'delete'] },
+    emp_compliance: { module: 'compliance', actions: ['view'] },
+    emp_resignation: { module: 'resignation', actions: ['view', 'create'] },
+
+    cand_dashboard: { module: 'dashboard', actions: ['view'] },
+    cand_browse_jobs: { module: 'browse_jobs', actions: ['view', 'create', 'edit'] },
+    cand_applications: { module: 'my_applications', actions: ['view', 'create', 'edit', 'delete'] },
+    cand_resume: { module: 'resume_builder', actions: ['view', 'create', 'edit', 'delete'] },
+    cand_ai_score: { module: 'ai_score', actions: ['view'] },
+    cand_interviews: { module: 'interview_schedule', actions: ['view'] },
+    cand_notifications: { module: 'notifications', actions: ['view'] },
+    cand_offers: { module: 'offers', actions: ['view'] },
   };
 
   const getFlatPermissionsFromObject = (permissionsObj) => {

@@ -9,6 +9,7 @@ export const PermissionProvider = ({ children }) => {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   
   const [permissions, setPermissions] = useState(null);
+  const [employeePermissions, setEmployeePermissions] = useState(null);
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [roleKey, setRoleKey] = useState(null);
   const [roleName, setRoleName] = useState(null);
@@ -19,6 +20,7 @@ export const PermissionProvider = ({ children }) => {
   const fetchPermissions = useCallback(async () => {
     if (!isAuthenticated) {
       setPermissions(null);
+      setEmployeePermissions(null);
       setIsSuperAdmin(false);
       setRoleKey(null);
       setLoading(false);
@@ -31,6 +33,7 @@ export const PermissionProvider = ({ children }) => {
       const { 
         isSuperAdmin: isSa, 
         permissions: perms, 
+        employeePermissions: empPerms,
         role, 
         roleName: rName, 
         isCustomOverride: isCust, 
@@ -39,6 +42,7 @@ export const PermissionProvider = ({ children }) => {
       
       setIsSuperAdmin(isSa);
       setPermissions(isSa ? 'FULL_ACCESS' : perms);
+      setEmployeePermissions(isSa ? 'FULL_ACCESS' : empPerms);
       setRoleKey(role ? role.toLowerCase() : null);
       setRoleName(rName || null);
       setIsCustomOverride(isCust || false);
@@ -46,6 +50,7 @@ export const PermissionProvider = ({ children }) => {
     } catch (err) {
       console.error("Failed to fetch permissions", err);
       setPermissions([]);
+      setEmployeePermissions([]);
     } finally {
       setLoading(false);
     }
@@ -58,17 +63,24 @@ export const PermissionProvider = ({ children }) => {
   }, [authLoading, isAuthenticated, fetchPermissions]);
 
   // Expose the same helpers as permissionUtils but bound to current state
-  const hasPermission = useCallback((module, action = 'view') => {
+  const hasPermission = useCallback((module, action = 'view', scope = null) => {
+    if (scope === 'employee' && employeePermissions) {
+      return isPermitted(employeePermissions, module, action);
+    }
     return isPermitted(permissions, module, action);
-  }, [permissions]);
+  }, [permissions, employeePermissions]);
 
-  const hasModuleAccess = useCallback((module) => {
+  const hasModuleAccess = useCallback((module, scope = null) => {
+    if (scope === 'employee' && employeePermissions) {
+      return isPermitted(employeePermissions, module, 'view');
+    }
     return isPermitted(permissions, module, 'view');
-  }, [permissions]);
+  }, [permissions, employeePermissions]);
 
   return (
     <PermissionContext.Provider value={{ 
       permissions, 
+      employeePermissions,
       loading: loading || authLoading, 
       isSuperAdmin, 
       roleKey,

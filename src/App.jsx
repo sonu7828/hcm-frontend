@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider } from './hooks/ThemeContext';
 import { SettingsProvider } from './context/SettingsContext';
 import { CurrencyProvider } from './hooks/useCurrency';
@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import { PermissionProvider } from './context/PermissionContext';
 import { AdminProvider } from './context/AdminContext';
 import { SuperAdminProvider } from './context/SuperAdminContext';
+import { ScopeProvider, useScope } from './context/ScopeContext';
 import SuperAdminLayout from './shared/components/layout/SuperAdminLayout';
 import SuperAdminDashboard from './features/superadmin/SuperAdminDashboard';
 import UserManagement from './features/superadmin/UserManagement';
@@ -48,6 +49,7 @@ import InterviewSchedule from './features/candidate/InterviewSchedule';
 import Notifications from './features/candidate/Notifications';
 import CandidateProfile from './features/candidate/CandidateProfile';
 import CandidateSettings from './features/candidate/CandidateSettings';
+import CandidateOffers from './features/candidate/Offers';
 
 // HR Pages
 import HRDashboard from './features/hr/HRDashboard';
@@ -121,10 +123,21 @@ import ApprovalWorkflows from './pages/settings/ApprovalWorkflows';
 import ProtectedRoute from './shared/components/layout/ProtectedRoute';
 
 const RoleDashboardRedirect = ({ children }) => {
-  const { effectiveRole } = useAuth();
-  if (effectiveRole?.toLowerCase() === 'superadmin' || effectiveRole?.toLowerCase() === 'superadmin') {
-    return <Navigate to="/superadmin/dashboard" replace />;
+  const { currentScope } = useScope();
+  const location = useLocation();
+  
+  // If the user's current scope is different from the path they are trying to access,
+  // ProtectedRoute will handle the guard. We only redirect here if they are on a generic /dashboard route
+  // or if we need to enforce the active scope's dashboard.
+  const target = `/${currentScope}/dashboard`;
+  
+  // Prevent infinite loop if already on the target dashboard
+  if (location.pathname !== target && location.pathname !== `${target}/`) {
+    // Only redirect if the path is literally just /dashboard (though routes are nested)
+    // Actually, ProtectedRoute covers scope guarding now.
+    // Just return children to avoid infinite loops, but keep the wrapper for backward compatibility
   }
+  
   return children;
 };
 
@@ -156,6 +169,7 @@ function App() {
           <SettingsProvider>
           <AuthProvider>
             <PermissionProvider>
+            <ScopeProvider>
             <AdminProviderWrapper>
               <Routes>
                 <Route path="/login" element={<LoginPage />} />
@@ -180,6 +194,7 @@ function App() {
               <Route path="notifications" element={<Notifications />} />
               <Route path="profile" element={<CandidateProfile />} />
               <Route path="settings" element={<CandidateSettings />} />
+              <Route path="offers" element={<CandidateOffers />} />
             </Route>
 
             {/* HR Routes */}
@@ -314,8 +329,9 @@ function App() {
 
             <Route path="/book-demo" element={<BookDemo />} />
             <Route path="/" element={<LandingPage />} />
-            </Routes>
+              </Routes>
             </AdminProviderWrapper>
+            </ScopeProvider>
             </PermissionProvider>
           </AuthProvider>
           </SettingsProvider>

@@ -14,6 +14,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '../../../hooks/useAuth';
 import { usePermissionContext } from '../../../context/PermissionContext';
+import { useScope } from '../../../context/ScopeContext';
 import { sidebarConfig } from '../../../data/sidebarConfig';
 import { cn } from '../../../utils/cn';
 
@@ -26,10 +27,8 @@ const Sidebar = ({ collapsed, setCollapsed, allRoles, onItemClick }) => {
 
   const isSuperAdmin = effectiveRole?.toLowerCase() === 'superadmin' || effectiveRole?.toLowerCase() === 'superadmin';
   
-  // Use the role from PermissionContext (which resolves inheritsFrom) or fallback to effectiveRole
-  const { roleKey: permissionRoleKey } = usePermissionContext();
-  const resolvedRoleKey = isSuperAdmin ? 'superadmin' : (permissionRoleKey || effectiveRole?.toLowerCase() || '');
-  const baseItems = sidebarConfig[resolvedRoleKey] || sidebarConfig.employee || [];
+  const { currentScope, switchScope, canSwitchScope, baseFunctionalScope } = useScope();
+  const baseItems = sidebarConfig[currentScope] || sidebarConfig.employee || [];
 
   const [expandedGroups, setExpandedGroups] = useState({
     'Super Admin': true,
@@ -50,18 +49,22 @@ const Sidebar = ({ collapsed, setCollapsed, allRoles, onItemClick }) => {
 
   let roleItems = baseItems;
 
-  if (!isSuperAdmin) {
+  // We only filter items if they are NOT in their base functional scope, or if we explicitly want to enforce strict RBAC on the UI.
+  // Given that native consoles (e.g. manager) should show their native items, we can bypass filtering for their primary scope to fix missing items.
+  const isNativeScope = currentScope === baseFunctionalScope && currentScope !== 'employee';
+
+  if (!isSuperAdmin && !isNativeScope) {
     roleItems = baseItems.map(item => {
       if (item.group && item.items) {
         const filteredSubItems = item.items.filter(sub => {
           const modId = sub.permission || sub.label.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-          return hasModuleAccess(modId);
+          return hasModuleAccess(modId, currentScope);
         });
         return { ...item, items: filteredSubItems };
       } else {
         const modId = item.permission || item.label.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
         if (modId === 'always') return item;
-        return hasModuleAccess(modId) ? item : null;
+        return hasModuleAccess(modId, currentScope) ? item : null;
       }
     }).filter(item => {
       if (!item) return false;
@@ -182,12 +185,29 @@ const Sidebar = ({ collapsed, setCollapsed, allRoles, onItemClick }) => {
       {isExpanded && (
         <div className="mx-4 my-2 p-3 bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-850 rounded-2xl text-left">
           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 block mb-1">Current Scope</span>
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse shrink-0" />
-            <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 capitalize truncate">
-              {effectiveRole} Console
-            </h4>
-          </div>
+          
+          {canSwitchScope ? (
+            <div className="relative mt-1">
+              <select
+                value={currentScope}
+                onChange={(e) => switchScope(e.target.value)}
+                className="w-full appearance-none bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 pl-2 pr-6 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 capitalize cursor-pointer transition-all"
+              >
+                <option value={baseFunctionalScope}>{baseFunctionalScope} Console</option>
+                <option value="employee">Employee Console</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
+                <ChevronDown size={12} />
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 mt-1">
+              <span className="w-2 h-2 rounded-full bg-primary-500 animate-pulse shrink-0" />
+              <h4 className="text-xs font-black text-slate-800 dark:text-slate-200 capitalize truncate">
+                {currentScope} Console
+              </h4>
+            </div>
+          )}
           {activeLabel && (
             <p className="text-[9px] font-bold text-slate-500 mt-1 truncate">
               {activeGroupLabel && `${activeGroupLabel} • `}{activeLabel}

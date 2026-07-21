@@ -13,16 +13,16 @@ const AuthContext = createContext();
 // Role → Dashboard URL mapping
 const ROLE_ROUTES = {
   SUPERADMIN: '/superadmin/dashboard',
-  ADMIN:      '/admin/dashboard',
-  HR:         '/hr/dashboard',
-  MANAGER:    '/manager/dashboard',
-  EMPLOYEE:   '/employee/dashboard',
-  CANDIDATE:  '/candidate/dashboard',
+  ADMIN: '/admin/dashboard',
+  HR: '/hr/dashboard',
+  MANAGER: '/manager/dashboard',
+  EMPLOYEE: '/employee/dashboard',
+  CANDIDATE: '/candidate/dashboard',
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser]         = useState(null);
-  const [loading, setLoading]   = useState(true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [previewRole, setPreviewRole] = useState(null);
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   // ── App load hone par check karo ki token saved hai ya nahi ──
   useEffect(() => {
-    const token    = localStorage.getItem('hcm_token');
+    const token = localStorage.getItem('hcm_token');
     const savedUser = localStorage.getItem('hcm_user');
 
     if (token && savedUser) {
@@ -95,6 +95,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('hcm_token');
     localStorage.removeItem('hcm_user');
     sessionStorage.removeItem('hcm_preview_role');
+    sessionStorage.removeItem('hcm_current_scope');
     sessionStorage.setItem('logged_out', 'true');
     navigate('/login');
   };

@@ -4,12 +4,14 @@ import { usePermissionContext } from '../../../context/PermissionContext';
 import { getFirstAccessibleRoute, PATH_TO_MODULE } from '../../../utils/permissionUtils';
 import AccessDenied from '../common/AccessDenied';
 import { Loader2 } from 'lucide-react';
+import { useScope } from '../../../context/ScopeContext';
 
 /**
  * Route guard that ensures the user has permission to view the module associated with this route.
  */
 const ProtectedRoute = ({ children, customModule = null }) => {
   const { permissions, loading, isSuperAdmin, roleKey, hasModuleAccess } = usePermissionContext();
+  const { currentScope } = useScope();
   const location = useLocation();
 
   if (loading) {
@@ -18,6 +20,16 @@ const ProtectedRoute = ({ children, customModule = null }) => {
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
       </div>
     );
+  }
+
+  // --- Scope Guard ---
+  // Ensure the user does not manually visit a URL outside their currently selected Scope.
+  const segments = location.pathname.split('/').filter(Boolean);
+  const pathScope = segments[0]?.toLowerCase();
+  const validScopes = ['superadmin', 'admin', 'hr', 'manager', 'employee', 'candidate'];
+
+  if (permissions && validScopes.includes(pathScope) && pathScope !== currentScope) {
+    return <Navigate to={`/${currentScope}/dashboard`} replace />;
   }
 
   // Determine which module this path requires
@@ -43,7 +55,7 @@ const ProtectedRoute = ({ children, customModule = null }) => {
   }
 
   // Check access
-  if (hasModuleAccess(moduleToCheck)) {
+  if (hasModuleAccess(moduleToCheck, currentScope)) {
     return <>{children}</>;
   }
 
