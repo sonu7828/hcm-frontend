@@ -216,6 +216,7 @@ export const adminAPI = {
 
   getAllUsers: () => API.get('/admin/users'),
   createUser: (data) => API.post('/admin/users', data),
+  updateUser: (id, data) => API.put(`/admin/users/${id}`, data),
   changeUserRole: (id, data) => API.patch(`/admin/users/${id}/role`, data),
   toggleUserActive: (id) => API.patch(`/admin/users/${id}/toggle-active`),
   deleteUser: (id) => API.delete(`/admin/users/${id}`),

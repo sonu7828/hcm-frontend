@@ -49,22 +49,21 @@ const Sidebar = ({ collapsed, setCollapsed, allRoles, onItemClick }) => {
 
   let roleItems = baseItems;
 
-  // We only filter items if they are NOT in their base functional scope, or if we explicitly want to enforce strict RBAC on the UI.
-  // Given that native consoles (e.g. manager) should show their native items, we can bypass filtering for their primary scope to fix missing items.
-  const isNativeScope = currentScope === baseFunctionalScope && currentScope !== 'employee';
-
-  if (!isSuperAdmin && !isNativeScope) {
+  // Always filter sidebar items by permissions, except for SuperAdmin.
+  // Items with permission='always' or permission='dashboard' always show (safe defaults).
+  if (!isSuperAdmin) {
     roleItems = baseItems.map(item => {
       if (item.group && item.items) {
         const filteredSubItems = item.items.filter(sub => {
-          const modId = sub.permission || sub.label.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-          return hasModuleAccess(modId, currentScope);
+          const permKey = sub.permission;
+          if (!permKey || permKey === 'always' || permKey === 'dashboard') return true;
+          return hasModuleAccess(permKey, currentScope);
         });
         return { ...item, items: filteredSubItems };
       } else {
-        const modId = item.permission || item.label.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_');
-        if (modId === 'always') return item;
-        return hasModuleAccess(modId, currentScope) ? item : null;
+        const permKey = item.permission;
+        if (!permKey || permKey === 'always' || permKey === 'dashboard') return item;
+        return hasModuleAccess(permKey, currentScope) ? item : null;
       }
     }).filter(item => {
       if (!item) return false;

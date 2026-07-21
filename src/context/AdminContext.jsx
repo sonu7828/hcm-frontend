@@ -416,15 +416,7 @@ export const AdminProvider = ({ children, user }) => {
 
   const updateUser = async (id, updatedData) => {
     try {
-      if (updatedData.role || updatedData.customRoleId !== undefined) {
-        await adminAPI.changeUserRole(id, { 
-          role: updatedData.role,
-          customRoleId: updatedData.customRoleId
-        });
-      }
-      if (updatedData.status) {
-        await adminAPI.toggleUserActive(id);
-      }
+      await adminAPI.updateUser(id, updatedData);
       await fetchUsers();
       showToast(`User profile updated`);
     } catch (err) {
@@ -433,7 +425,7 @@ export const AdminProvider = ({ children, user }) => {
         localStorage.setItem('hcm_admin_users', JSON.stringify(updated));
         return updated;
       });
-      showToast(`User profile updated (demo mode)`);
+      showToast(err.response?.data?.error?.message || `User profile updated (demo mode)`, err.response ? 'error' : 'success');
     }
   };
 
