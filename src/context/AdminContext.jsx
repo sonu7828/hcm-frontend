@@ -168,21 +168,27 @@ export const AdminProvider = ({ children, user }) => {
     const token = localStorage.getItem('hcm_token');
     if (!token) return;
     try {
-      const res = await adminAPI.getAllPayslips(monthName ? { month: monthName } : undefined);
+      const res = await hrAPI.getPayrollSnapshots(monthName ? { month: monthName } : undefined);
       const payslipsArray = res.data?.data || res.data || [];
-      const mapped = payslipsArray.map(p => ({
-        ...p,
-        name: p.employee?.fullName || 'System Employee',
-        userId: p.employee?.userId,
-        employeeId: p.employeeId,
-        basic: p.basic || 0,
-        bonus: p.bonus || 0,
-        deductions: p.pf || 0,
-        tax: p.tax || 0,
-        net: p.netPay || 0,
-        status: p.status === 'Paid' || p.status === 'PAID' ? 'Processed' : p.status,
-        img: p.employee?.user?.avatarUrl || ''
-      }));
+      const mapped = payslipsArray.map(p => {
+        const basicItem = (p.items || []).find(i => i.code?.toLowerCase() === 'basic' || i.name?.toLowerCase().includes('basic'));
+        const bonusItem = (p.items || []).find(i => i.code?.toLowerCase() === 'bonus' || i.name?.toLowerCase().includes('bonus'));
+        const taxItem = (p.items || []).find(i => i.code?.toLowerCase().startsWith('tax_'));
+        
+        return {
+          ...p,
+          name: p.employee?.fullName || 'System Employee',
+          userId: p.employee?.userId,
+          employeeId: p.employeeId,
+          basic: basicItem ? basicItem.amount : (p.grossSalary || 0),
+          bonus: bonusItem ? bonusItem.amount : 0,
+          deductions: p.totalDeductions || 0,
+          tax: taxItem ? taxItem.amount : 0,
+          net: p.netSalary || 0,
+          status: p.status === 'Paid' || p.status === 'PAID' ? 'Processed' : p.status,
+          img: p.employee?.avatarUrl || p.employee?.user?.avatarUrl || ''
+        };
+      });
       setPayrollList(mapped);
     } catch (err) {
       console.error("Failed to fetch payroll snapshots", err);

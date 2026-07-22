@@ -276,6 +276,7 @@ function App() {
               <Route path="users" element={<UserManagement />} />
               <Route path="roles" element={<RolesPermissions />} />
               <Route path="departments" element={<DepartmentManagement />} />
+              <Route path="payroll-config" element={<PayrollConfig />} />
               <Route path="payroll" element={<SuperAdminPayrollCenter />} />
               <Route path="benefits" element={<SuperAdminBenefitsConfig />} />
               <Route path="attendance" element={<SuperAdminAttendanceCenter />} />

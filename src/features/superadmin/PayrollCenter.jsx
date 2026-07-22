@@ -1110,7 +1110,7 @@ const PayrollCenter = () => {
             >
               <button
                 onClick={() => setShowPayslipModal(false)}
-                className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition-colors"
+                className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition-colors bg-white/80"
               >
                 <X size={18} />
               </button>
@@ -1118,13 +1118,13 @@ const PayrollCenter = () => {
               {/* Printable Area Wrapper */}
               <div ref={payslipPrintRef} className="space-y-6">
                 {/* Payslip Header Info */}
-                <div className="flex justify-between items-start border-b border-primary-100 dark:border-slate-800 pb-4">
+                <div className="flex justify-between items-start border-b border-primary-100 dark:border-slate-800 pb-4 mt-2">
                   <div>
                     <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-wider">HCM.ai Solutions</h2>
                     <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-0.5">Enterprise Employee Paystub</p>
                   </div>
-                  <div className="text-right">
-                    <span className="text-xs font-bold font-mono text-slate-400">PAYSLIP ID: {selectedRecord.id}</span>
+                  <div className="text-right mr-6">
+                    <span className="text-xs font-bold font-mono text-slate-400">PAYSLIP ID: {selectedRecord.id?.slice(0, 8).toUpperCase()}</span>
                     <p className="text-[10px] text-slate-500 mt-1">Month: <strong>{selectedRecord.month}</strong></p>
                   </div>
                 </div>
@@ -1133,16 +1133,16 @@ const PayrollCenter = () => {
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Employee Details</p>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">{selectedRecord.employeeName}</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200">{selectedRecord.name}</p>
                     <p className="text-slate-400 font-mono mt-0.5">{selectedRecord.employeeId}</p>
-                    <p className="text-slate-500 mt-0.5">{selectedRecord.designation} • {selectedRecord.department}</p>
+                    <p className="text-slate-500 mt-0.5">{selectedRecord.designation || 'Employee'} • {selectedRecord.department}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Attendance Summary</p>
                     <p className="text-slate-600 dark:text-slate-400">Working Days: <strong>{selectedRecord.totalWorkingDays ?? 0}</strong></p>
-                    <p className="text-slate-600 dark:text-slate-400">Days Present: <strong>{selectedRecord.attendancePresent ?? 0}</strong></p>
-                    <p className="text-slate-600 dark:text-slate-400">Paid Leaves: <strong>{selectedRecord.leavesTaken ?? 0}</strong></p>
-                    <p className="text-slate-600 dark:text-slate-400">LOP Days: <strong>{selectedRecord.attendanceAbsent ?? 0}</strong></p>
+                    <p className="text-slate-600 dark:text-slate-400">Days Present: <strong>{selectedRecord.presentDays ?? 0}</strong></p>
+                    <p className="text-slate-600 dark:text-slate-400">Paid Leaves: <strong>{selectedRecord.paidLeaveDays ?? 0}</strong></p>
+                    <p className="text-slate-600 dark:text-slate-400">LOP Days: <strong>{selectedRecord.unpaidLeaveDays ?? 0}</strong></p>
                   </div>
                 </div>
 
@@ -1151,14 +1151,27 @@ const PayrollCenter = () => {
                   {/* Earnings */}
                   <div className="space-y-1 text-xs">
                     <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-1 border-slate-100 dark:border-slate-800">Earnings</h4>
-                    <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
-                      <span>Basic Salary</span>
-                      <span>{formatCurrency(selectedRecord.basic, selectedRecord.currency)}</span>
-                    </div>
-                    <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
-                      <span>Bonus & Allowances</span>
-                      <span>{formatCurrency(selectedRecord.allowance + selectedRecord.bonus, selectedRecord.currency)}</span>
-                    </div>
+                    {selectedRecord.items && selectedRecord.items.length > 0 ? (
+                      selectedRecord.items
+                        .filter(item => ['Earning', 'Allowance', 'Variable Pay'].includes(item.type))
+                        .map((item, idx) => (
+                          <div key={idx} className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                            <span>{item.name}</span>
+                            <span>{formatCurrency(item.amount, selectedRecord.currency)}</span>
+                          </div>
+                        ))
+                    ) : (
+                      <>
+                        <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                          <span>Basic Salary</span>
+                          <span>{formatCurrency(selectedRecord.basic, selectedRecord.currency)}</span>
+                        </div>
+                        <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                          <span>Bonus & Allowances</span>
+                          <span>{formatCurrency(selectedRecord.allowance || 0 + selectedRecord.bonus || 0, selectedRecord.currency)}</span>
+                        </div>
+                      </>
+                    )}
                     {selectedRecord.overtimeAmount > 0 && (
                       <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
                         <span>Overtime Pay ({selectedRecord.overtimeHours?.toFixed(1)} hrs)</span>
@@ -1167,30 +1180,43 @@ const PayrollCenter = () => {
                     )}
                     <div className="flex justify-between py-1.5 font-bold border-t border-slate-100 dark:border-slate-800/80 text-slate-800 dark:text-slate-100">
                       <span>Gross Earnings</span>
-                      <span>{formatCurrency(selectedRecord.basic + selectedRecord.allowance + selectedRecord.bonus + (selectedRecord.overtimeAmount || 0), selectedRecord.currency)}</span>
+                      <span>{formatCurrency(selectedRecord.grossSalary || (selectedRecord.basic + (selectedRecord.allowance || 0) + (selectedRecord.bonus || 0) + (selectedRecord.overtimeAmount || 0)), selectedRecord.currency)}</span>
                     </div>
                   </div>
 
                   {/* Deductions */}
                   <div className="space-y-1 text-xs">
                     <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-1 border-slate-100 dark:border-slate-800">Withholding / Deductions</h4>
-                    <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
-                      <span>Income Tax</span>
-                      <span>{formatCurrency(selectedRecord.tax, selectedRecord.currency)}</span>
-                    </div>
-                    <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
-                      <span>Provident Fund</span>
-                      <span>{formatCurrency(selectedRecord.pf, selectedRecord.currency)}</span>
-                    </div>
-                    {selectedRecord.lopDeductionAmount > 0 && (
-                      <div className="flex justify-between py-1 text-rose-600 dark:text-rose-400 font-medium">
-                        <span>Loss of Pay (LOP)</span>
-                        <span>{formatCurrency(selectedRecord.lopDeductionAmount, selectedRecord.currency)}</span>
-                      </div>
+                    {selectedRecord.items && selectedRecord.items.length > 0 ? (
+                      selectedRecord.items
+                        .filter(item => item.type === 'Deduction')
+                        .map((item, idx) => (
+                          <div key={idx} className={`flex justify-between py-1 ${item.code === 'LOP_DEDUCT' ? 'text-rose-600 font-medium' : 'text-slate-600 dark:text-slate-300'}`}>
+                            <span>{item.name}</span>
+                            <span>{formatCurrency(item.amount, selectedRecord.currency)}</span>
+                          </div>
+                        ))
+                    ) : (
+                      <>
+                        <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                          <span>Income Tax</span>
+                          <span>{formatCurrency(selectedRecord.tax, selectedRecord.currency)}</span>
+                        </div>
+                        <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                          <span>Provident Fund</span>
+                          <span>{formatCurrency(selectedRecord.pf, selectedRecord.currency)}</span>
+                        </div>
+                        {selectedRecord.lopDeductionAmount > 0 && (
+                          <div className="flex justify-between py-1 text-rose-600 dark:text-rose-400 font-medium">
+                            <span>Loss of Pay (LOP)</span>
+                            <span>{formatCurrency(selectedRecord.lopDeductionAmount, selectedRecord.currency)}</span>
+                          </div>
+                        )}
+                      </>
                     )}
                     <div className="flex justify-between py-1.5 font-bold border-t border-slate-100 dark:border-slate-800/80 text-slate-800 dark:text-slate-100">
                       <span>Total Withheld</span>
-                      <span>{formatCurrency(selectedRecord.deductions, selectedRecord.currency)}</span>
+                      <span>{formatCurrency(selectedRecord.totalDeductions || selectedRecord.deductions, selectedRecord.currency)}</span>
                     </div>
                   </div>
                 </div>

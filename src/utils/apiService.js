@@ -188,6 +188,7 @@ export const hrAPI = {
   getIncrementRequests: () => API.get('/hr/payroll/increments'),
   approveIncrement: (id) => API.patch(`/hr/payroll/increments/${id}/approve`),
   rejectIncrement: (id) => API.patch(`/hr/payroll/increments/${id}/reject`),
+  getPayrollSnapshots: (params) => API.get('/hr/payroll/snapshots', { params }),
 
   promoteCandidate: (id, data) => API.post(`/hr/onboarding/${id}/promote`, data),
   initiateTermination: (data) => API.post('/hr/terminate', data),

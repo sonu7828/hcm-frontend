@@ -42,7 +42,7 @@ export const sidebarConfig = {
         { label: 'Roles & Permissions', icon: ShieldCheck, path: '/superadmin/roles', permission: 'always' },
         { label: 'User Control', icon: Users, path: '/superadmin/users', permission: 'always' },
         { label: 'Departments', icon: Building2, path: '/superadmin/departments', permission: 'always' },
-        { label: 'Payroll Config', icon: Settings, path: '/admin/payroll-config', permission: 'always' },
+        { label: 'Payroll Config', icon: Settings, path: '/superadmin/payroll-config', permission: 'always' },
         { label: 'Payroll Management', icon: CreditCard, path: '/superadmin/payroll', permission: 'always' },
         { label: 'Benefits Management', icon: Gift, path: '/superadmin/benefits', permission: 'always' },
         { label: 'Attendance Management', icon: Clock, path: '/superadmin/attendance', permission: 'always' },
