@@ -8,6 +8,7 @@ import {
   AlertCircle, X, FileText, ChevronRight, Eye,
   Edit2, Copy, Archive, Trash2, Sparkles, Loader2, GraduationCap, Upload
 } from 'lucide-react';
+import { hrAPI, adminAPI } from '../../utils/apiService';
 import { cn } from '../../utils/cn';
 import { useHR } from '../../context/HRContext';
 import { useCurrency } from '../../hooks/useCurrency';
@@ -30,6 +31,21 @@ const JobPosts = () => {
   const [filteredDept, setFilteredDept] = useState('');
   const [filteredStatus, setFilteredStatus] = useState('');
   const [isExporting, setIsExporting] = useState(false);
+  const [realDepartments, setRealDepartments] = useState([]);
+
+  useEffect(() => {
+    const loadDepts = async () => {
+      try {
+        const res = await adminAPI.getDepartments();
+        if (res.data && res.data.data) {
+          setRealDepartments(res.data.data.map(d => d.name).sort());
+        }
+      } catch (err) {
+        console.error("Failed to load departments", err);
+      }
+    };
+    loadDepts();
+  }, []);
 
   const [formData, setFormData] = useState({
     title: '', department: 'Engineering', openings: 1, salary: '', type: 'Full Time', description: '', status: 'Published', requirements: '', location: 'Mumbai, India', experience: ''
@@ -91,7 +107,7 @@ const JobPosts = () => {
 
   const handleOpenCreate = () => {
     setEditingJob(null);
-    setFormData({ title: '', department: 'Engineering', openings: 1, salary: '', type: 'Full Time', description: '', status: 'Published', requirements: '', location: 'Mumbai, India', experience: '' });
+    setFormData({ title: '', department: realDepartments.length > 0 ? realDepartments[0] : 'Engineering', openings: 1, salary: '', type: 'Full Time', description: '', status: 'Published', requirements: '', location: '', experience: '' });
     setIsModalOpen(true);
   };
 
@@ -334,21 +350,16 @@ const JobPosts = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-700 ml-1">Department</label>
-                      <input
-                        type="text"
-                        list="department-options"
+                      <select
                         value={formData.department}
                         onChange={e => setFormData({ ...formData, department: e.target.value })}
-                        placeholder="e.g. Engineering"
-                        className="input-field h-12"
-                      />
-                      <datalist id="department-options">
-                        <option value="Design" />
-                        <option value="Engineering" />
-                        <option value="Product" />
-                        <option value="Marketing" />
-                        <option value="Human Resources" />
-                      </datalist>
+                        className="input-field h-12 appearance-none"
+                      >
+                        {realDepartments.length === 0 && <option value="Engineering">Engineering</option>}
+                        {realDepartments.map(dept => (
+                          <option key={dept} value={dept}>{dept}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-700 ml-1">Salary Range</label>
@@ -359,19 +370,15 @@ const JobPosts = () => {
                     </div>
                     <div className="space-y-2">
                       <label className="text-sm font-bold text-slate-700 ml-1">Job Type</label>
-                      <input
-                        type="text"
-                        list="job-type-options"
+                      <select
                         value={formData.type}
                         onChange={e => setFormData({ ...formData, type: e.target.value })}
-                        placeholder="e.g. Full Time"
-                        className="input-field h-12"
-                      />
-                      <datalist id="job-type-options">
-                        <option value="Full Time" />
-                        <option value="Remote" />
-                        <option value="Contract" />
-                      </datalist>
+                        className="input-field h-12 appearance-none"
+                      >
+                        <option value="Full Time">Full Time</option>
+                        <option value="Remote">Remote</option>
+                        <option value="Contract">Contract</option>
+                      </select>
                     </div>
                     <div className="space-y-2">
                       <div className="space-y-2">
@@ -380,25 +387,11 @@ const JobPosts = () => {
                           <MapPin className="absolute left-3 top-3.5 text-slate-400 z-10 pointer-events-none" size={18} />
                           <input
                             type="text"
-                            list="location-options"
                             value={formData.location}
                             onChange={e => setFormData({ ...formData, location: e.target.value })}
                             placeholder="e.g. Mumbai, India"
                             className="input-field h-12 pl-10"
                           />
-                          <datalist id="location-options">
-                            <option value="Mumbai, India" />
-                            <option value="Bangalore, India" />
-                            <option value="Delhi, India" />
-                            <option value="Hyderabad, India" />
-                            <option value="Pune, India" />
-                            <option value="Chennai, India" />
-                            <option value="Kolkata, India" />
-                            <option value="New York, NY" />
-                            <option value="San Francisco, CA" />
-                            <option value="London, UK" />
-                            <option value="Dubai, UAE" />
-                          </datalist>
                         </div>
                       </div>
                     </div>
@@ -407,23 +400,20 @@ const JobPosts = () => {
                         <label className="text-sm font-bold text-slate-700 ml-1">Experience Required</label>
                         <div className="relative">
                           <GraduationCap className="absolute left-3 top-3.5 text-slate-400 pointer-events-none" size={18} />
-                          <input
-                            type="text"
-                            list="experience-options"
+                          <select
                             value={formData.experience}
                             onChange={e => setFormData({ ...formData, experience: e.target.value })}
-                            placeholder="e.g. 3-5 Years, Entry Level"
-                            className="input-field h-12 pl-10"
-                          />
-                          <datalist id="experience-options">
-                            <option value="Entry Level (0-1 Year)" />
-                            <option value="1-3 Years" />
-                            <option value="3-5 Years" />
-                            <option value="5-8 Years" />
-                            <option value="8+ Years" />
-                            <option value="Fresher" />
-                            <option value="Any Experience" />
-                          </datalist>
+                            className="input-field h-12 pl-10 appearance-none"
+                          >
+                            <option value="" disabled>Select Experience</option>
+                            <option value="Entry Level (0-1 Year)">Entry Level (0-1 Year)</option>
+                            <option value="1-3 Years">1-3 Years</option>
+                            <option value="3-5 Years">3-5 Years</option>
+                            <option value="5-8 Years">5-8 Years</option>
+                            <option value="8+ Years">8+ Years</option>
+                            <option value="Fresher">Fresher</option>
+                            <option value="Any Experience">Any Experience</option>
+                          </select>
                         </div>
                       </div>
                     </div>
