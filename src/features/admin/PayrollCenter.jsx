@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search, Filter, Calendar, Users, DollarSign, Lock, Play, Table, AlertCircle,
   TrendingUp, Zap, Info, X, Check, Edit3, TrendingDown, Eye, Download,
-  CheckCircle2, MoreVertical, Calculator, History, User, Loader2
+  CheckCircle2, MoreVertical, Calculator, History, User, Loader2, FileText, Printer
 } from 'lucide-react';
 import { useAdmin } from '../../context/AdminContext';
 import { cn } from '../../utils/cn';
@@ -27,6 +27,9 @@ const PayrollCenter = () => {
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isTaxModalOpen, setIsTaxModalOpen] = useState(false);
   const [employeeToView, setEmployeeToView] = useState(null);
+  const [showPayslipModal, setShowPayslipModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState(null);
+  const payslipPrintRef = React.useRef(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   const allMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -64,32 +67,13 @@ const PayrollCenter = () => {
   }, [selectedMonth, fetchPayroll]);
 
   const downloadPayslip = (emp) => {
-    const content = `
-========================================
-             PAYSLIP
-========================================
-Employee: ${emp.name}
-Role: ${emp.role || 'Employee'}
-Month: ${selectedMonth}
-Status: ${emp.status}
-----------------------------------------
-Basic: ${formatCurrency(emp.basic, emp.currency)}
-Bonus/Allowances: ${formatCurrency(emp.bonus, emp.currency)}
-Deductions: ${formatCurrency(emp.deductions, emp.currency)}
-----------------------------------------
-NET PAYABLE: ${formatCurrency(emp.net, emp.currency)}
-========================================
-`;
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `payslip_${emp.name.replace(/\s+/g, '_')}_${selectedMonth}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast(`Payslip downloaded for ${emp.name}`);
+    setSelectedRecord(emp);
+    setShowPayslipModal(true);
+    // Give the modal a brief moment to render before calling print
+    setTimeout(() => {
+      window.print();
+    }, 150);
+    showToast(`Preparing PDF layout for ${emp.name || emp.employeeName}`);
   };
 
   const defaultCurrency = appSettings?.general?.defaultCurrency;
@@ -366,9 +350,12 @@ NET PAYABLE: ${formatCurrency(emp.net, emp.currency)}
                     <td className="hcm-td text-right">
                       <div className="flex justify-end items-center gap-1.5">
                         <button
-                          onClick={() => setEmployeeToView(emp)}
-                          className="p-1.5 text-slate-400 hover:text-primary-600 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-all"
-                          title="View Breakdown"
+                          onClick={() => {
+                            setSelectedRecord(emp);
+                            setShowPayslipModal(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition-all"
+                          title="View Payslip"
                         >
                           <Eye size={16} />
                         </button>
@@ -591,12 +578,172 @@ NET PAYABLE: ${formatCurrency(emp.net, emp.currency)}
         onClose={() => setIsTaxModalOpen(false)}
       />
 
-      <PayrollBreakdownModal
-        isOpen={!!employeeToView}
-        onClose={() => setEmployeeToView(null)}
-        employee={employeeToView}
-        selectedMonth={selectedMonth}
-      />
+      <AnimatePresence>
+        {showPayslipModal && selectedRecord && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-slate-900 rounded-2xl p-6 max-w-xl w-full border border-slate-100 dark:border-slate-800 shadow-2xl relative text-left"
+            >
+              <button
+                onClick={() => setShowPayslipModal(false)}
+                className="absolute top-2 right-2 p-1.5 text-slate-400 hover:text-slate-600 rounded-lg transition-colors bg-white/80"
+              >
+                <X size={18} />
+              </button>
+
+              {/* Printable Area Wrapper */}
+              <div id="payslip-print-container" ref={payslipPrintRef} className="space-y-6">
+                {/* Payslip Header Info */}
+                <div className="flex justify-between items-start border-b border-primary-100 dark:border-slate-800 pb-4 mt-2">
+                  <div>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-wider">{appSettings?.general?.companyName || 'GlobalTech Solutions'}</h2>
+                    <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-0.5">Enterprise Employee Paystub</p>
+                  </div>
+                  <div className="text-right mr-6">
+                    <span className="text-xs font-bold font-mono text-slate-400">PAYSLIP ID: {selectedRecord.id?.slice(0, 8).toUpperCase()}</span>
+                    <p className="text-[10px] text-slate-500 mt-1">Month: <strong>{selectedRecord.month}</strong></p>
+                  </div>
+                </div>
+
+                {/* Employee / Issue details */}
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Employee Details</p>
+                    <p className="font-bold text-slate-800 dark:text-slate-200">{selectedRecord.name || selectedRecord.employeeName}</p>
+                    <p className="text-slate-400 font-mono mt-0.5">{selectedRecord.employeeId || selectedRecord.displayId}</p>
+                    <p className="text-slate-500 mt-0.5">{selectedRecord.designation || selectedRecord.role || 'Employee'} • {selectedRecord.department}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Attendance Summary</p>
+                    <p className="text-slate-600 dark:text-slate-400">Working Days: <strong>{selectedRecord.totalWorkingDays ?? 0}</strong></p>
+                    <p className="text-slate-600 dark:text-slate-400">Days Present: <strong>{selectedRecord.presentDays ?? selectedRecord.attendancePresent ?? 0}</strong></p>
+                    <p className="text-slate-600 dark:text-slate-400">Paid Leaves: <strong>{selectedRecord.paidLeaveDays ?? 0}</strong></p>
+                    <p className="text-slate-600 dark:text-slate-400">LOP Days: <strong>{selectedRecord.unpaidLeaveDays ?? selectedRecord.attendanceAbsent ?? 0}</strong></p>
+                  </div>
+                </div>
+
+                {/* Breakdown Tables (Earnings vs Deductions) */}
+                <div className="grid grid-cols-2 gap-6 pt-2">
+                  {/* Earnings */}
+                  <div className="space-y-1 text-xs">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-1 border-slate-100 dark:border-slate-800">Earnings</h4>
+                    {selectedRecord.items && selectedRecord.items.length > 0 ? (
+                      selectedRecord.items
+                        .filter(item => ['Earning', 'Allowance', 'Variable Pay'].includes(item.type))
+                        .map((item, idx) => (
+                          <div key={idx} className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                            <span>{item.name}</span>
+                            <span>{formatCurrency(item.amount, selectedRecord.currency)}</span>
+                          </div>
+                        ))
+                    ) : (
+                      <>
+                        <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                          <span>Basic Salary</span>
+                          <span>{formatCurrency(selectedRecord.basic, selectedRecord.currency)}</span>
+                        </div>
+                        <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                          <span>Bonus & Allowances</span>
+                          <span>{formatCurrency((selectedRecord.allowance || 0) + (selectedRecord.bonus || 0), selectedRecord.currency)}</span>
+                        </div>
+                      </>
+                    )}
+                    {selectedRecord.overtimeAmount > 0 && (
+                      <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                        <span>Overtime Pay ({selectedRecord.overtimeHours?.toFixed(1)} hrs)</span>
+                        <span>{formatCurrency(selectedRecord.overtimeAmount, selectedRecord.currency)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between py-1.5 font-bold border-t border-slate-100 dark:border-slate-800/80 text-slate-800 dark:text-slate-100">
+                      <span>Gross Earnings</span>
+                      <span>{formatCurrency(selectedRecord.grossSalary || (selectedRecord.basic + (selectedRecord.allowance || 0) + (selectedRecord.bonus || 0) + (selectedRecord.overtimeAmount || 0)), selectedRecord.currency)}</span>
+                    </div>
+                  </div>
+
+                  {/* Deductions */}
+                  <div className="space-y-1 text-xs">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-1 border-slate-100 dark:border-slate-800">Withholding / Deductions</h4>
+                    {selectedRecord.items && selectedRecord.items.length > 0 ? (
+                      selectedRecord.items
+                        .filter(item => item.type === 'Deduction')
+                        .map((item, idx) => (
+                          <div key={idx} className={`flex justify-between py-1 ${item.code === 'LOP_DEDUCT' ? 'text-rose-600 font-medium' : 'text-slate-600 dark:text-slate-300'}`}>
+                            <span>{item.name}</span>
+                            <span>{formatCurrency(item.amount, selectedRecord.currency)}</span>
+                          </div>
+                        ))
+                    ) : (
+                      <>
+                        <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                          <span>Income Tax</span>
+                          <span>{formatCurrency(selectedRecord.tax, selectedRecord.currency)}</span>
+                        </div>
+                        <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                          <span>Provident Fund</span>
+                          <span>{formatCurrency(selectedRecord.pf, selectedRecord.currency)}</span>
+                        </div>
+                        {selectedRecord.lopDeductionAmount > 0 && (
+                          <div className="flex justify-between py-1 text-rose-600 dark:text-rose-400 font-medium">
+                            <span>Loss of Pay (LOP)</span>
+                            <span>{formatCurrency(selectedRecord.lopDeductionAmount, selectedRecord.currency)}</span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div className="flex justify-between py-1.5 font-bold border-t border-slate-100 dark:border-slate-800/80 text-slate-800 dark:text-slate-100">
+                      <span>Total Withheld</span>
+                      <span>{formatCurrency(selectedRecord.totalDeductions || selectedRecord.deductions, selectedRecord.currency)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Net Total Summary */}
+                <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl flex justify-between items-center border border-slate-100 dark:border-slate-800">
+                  <div>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Net Salary Payable</span>
+                    <h3 className="text-2xl font-black text-slate-800 dark:text-white mt-0.5">{formatCurrency(selectedRecord.net, selectedRecord.currency)}</h3>
+                  </div>
+                  <div className="text-right">
+                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${selectedRecord.status === 'Paid' || selectedRecord.status === 'Processed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                      }`}>{selectedRecord.status}</span>
+                  </div>
+                </div>
+
+                {/* Footer terms */}
+                <div className="text-center text-[9px] text-slate-400 mt-6 border-t pt-4 border-slate-100 dark:border-slate-800">
+                  <p>This is a computer-generated document and does not require a physical signature.</p>
+                  <p className="mt-0.5">{appSettings?.general?.companyName || 'GlobalTech Solutions'} Payroll Processing Service Platform. Confidential. © {new Date().getFullYear()}</p>
+                </div>
+              </div>
+
+              {/* Action Buttons in Modal footer */}
+              <div className="flex gap-2 pt-4 border-t dark:border-slate-850 mt-4">
+                <button
+                  onClick={() => window.print()}
+                  className="flex-1 btn-secondary text-xs py-2 flex items-center justify-center gap-1.5"
+                >
+                  <Printer size={13} /> Print / PDF
+                </button>
+                <button
+                  onClick={() => downloadPayslip(selectedRecord)}
+                  className="flex-1 btn-primary text-xs py-2 flex items-center justify-center gap-1.5"
+                >
+                  <Download size={13} /> Download PDF
+                </button>
+                <button
+                  onClick={() => setShowPayslipModal(false)}
+                  className="flex-1 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs py-2 font-bold transition-all"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

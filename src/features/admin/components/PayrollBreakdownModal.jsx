@@ -161,63 +161,100 @@ const PayrollBreakdownModal = ({ isOpen, onClose, employee }) => {
                 </div>
 
                 {/* Right Side: Payslip breakdown visualization */}
-                <div className="p-6 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4 text-left">
-                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b pb-2">Payslip Estimation</h3>
-
-                  {/* Earnings */}
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs text-slate-500 font-medium">
-                      <span>Basic Earnings</span>
-                      <span className="font-bold text-slate-800 dark:text-white">{formatCurrency(basicVal, defaultCurrency)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs text-slate-500 font-medium">
-                      <span>Allowances & Bonuses</span>
-                      <span className="font-bold text-emerald-600">+{formatCurrency(bonusVal, defaultCurrency)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs font-bold text-slate-700 dark:text-slate-300 border-t pt-1.5">
-                      <span>Gross Earnings</span>
-                      <span>{formatCurrency(totalEarnings, defaultCurrency)}</span>
-                    </div>
-                  </div>
-
-                  {/* Statutory Tax Deductions */}
-                  <div className="space-y-2 pt-2 border-t border-dashed border-slate-200 dark:border-slate-800">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Statutory Tax Placeholders</p>
-                    <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-                      <span>Federal Income Tax (12%)</span>
-                      <span className="font-semibold text-rose-500">-{formatCurrency(fedTax, defaultCurrency)}</span>
-                    </div>
-                    <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-                      <span>Social Security FICA (6.2%)</span>
-                      <span className="font-semibold text-rose-500">-{formatCurrency(socialSecurity, defaultCurrency)}</span>
-                    </div>
-                    <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-                      <span>Medicare (1.45%)</span>
-                      <span className="font-semibold text-rose-500">-{formatCurrency(medicare, defaultCurrency)}</span>
-                    </div>
-                    <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-                      <span>State Tax (4%)</span>
-                      <span className="font-semibold text-rose-500">-{formatCurrency(stateTax, defaultCurrency)}</span>
-                    </div>
-                    <div className="flex justify-between text-[11px] text-slate-400 font-medium">
-                      <span>Custom Deductions</span>
-                      <span className="font-semibold text-rose-500">-{formatCurrency(customDeductions, defaultCurrency)}</span>
-                    </div>
-                    <div className="flex justify-between text-xs font-bold text-rose-600 border-t pt-1.5">
-                      <span>Total Deductions & Taxes</span>
-                      <span>-{formatCurrency(totalTax + customDeductions, defaultCurrency)}</span>
-                    </div>
-                  </div>
-
-                  {/* Net Pay */}
-                  <div className="p-4 bg-slate-900 rounded-xl text-white flex items-center justify-between mt-4">
+                <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm space-y-6 text-left">
+                  {/* Payslip Header Info */}
+                  <div className="flex justify-between items-start border-b border-primary-100 dark:border-slate-800 pb-4 mt-2">
                     <div>
-                      <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest">Take-Home Net Pay</p>
-                      <p className="text-2xl font-black text-white mt-0.5">{formatCurrency(netPayable, defaultCurrency)}</p>
+                      <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-wider">HCM.ai Solutions</h2>
+                      <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-0.5">Enterprise Employee Paystub</p>
                     </div>
-                    <span className="text-[9px] font-extrabold bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded uppercase tracking-wider">
-                      Tax Compliant
-                    </span>
+                    <div className="text-right mr-2">
+                      <span className="text-xs font-bold font-mono text-slate-400">PAYSLIP ID: {employee.id?.slice(0, 8).toUpperCase() || 'DRAFT'}</span>
+                      <p className="text-[10px] text-slate-500 mt-1">Month: <strong>{selectedMonth}</strong></p>
+                    </div>
+                  </div>
+
+                  {/* Employee / Issue details */}
+                  <div className="grid grid-cols-2 gap-4 text-xs">
+                    <div>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Employee Details</p>
+                      <p className="font-bold text-slate-800 dark:text-slate-200">{employee.name}</p>
+                      <p className="text-slate-400 font-mono mt-0.5">{employee.employeeId}</p>
+                      <p className="text-slate-500 mt-0.5">{employee.role || 'Employee'} • {employee.department || 'N/A'}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Attendance Summary</p>
+                      <p className="text-slate-600 dark:text-slate-400">Working Days: <strong>{employee.totalWorkingDays ?? 0}</strong></p>
+                      <p className="text-slate-600 dark:text-slate-400">Days Present: <strong>{employee.presentDays ?? 0}</strong></p>
+                      <p className="text-slate-600 dark:text-slate-400">Paid Leaves: <strong>{employee.paidLeaveDays ?? 0}</strong></p>
+                      <p className="text-slate-600 dark:text-slate-400">LOP Days: <strong>{employee.unpaidLeaveDays ?? 0}</strong></p>
+                    </div>
+                  </div>
+
+                  {/* Breakdown Tables (Earnings vs Deductions) */}
+                  <div className="grid grid-cols-2 gap-6 pt-2">
+                    {/* Earnings */}
+                    <div className="space-y-1 text-xs">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-1 border-slate-100 dark:border-slate-800">Earnings</h4>
+                      <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                        <span>Basic Salary</span>
+                        <span>{formatCurrency(basicVal, defaultCurrency)}</span>
+                      </div>
+                      <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                        <span>Bonus & Allowances</span>
+                        <span>{formatCurrency(bonusVal, defaultCurrency)}</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 font-bold border-t border-slate-100 dark:border-slate-800/80 text-slate-800 dark:text-slate-100 mt-2">
+                        <span>Gross Earnings</span>
+                        <span>{formatCurrency(totalEarnings, defaultCurrency)}</span>
+                      </div>
+                    </div>
+
+                    {/* Deductions */}
+                    <div className="space-y-1 text-xs">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase border-b pb-1 border-slate-100 dark:border-slate-800">Withholding / Deductions</h4>
+                      <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                        <span>Federal Income Tax</span>
+                        <span>{formatCurrency(fedTax, defaultCurrency)}</span>
+                      </div>
+                      <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                        <span>Social Security (FICA)</span>
+                        <span>{formatCurrency(socialSecurity, defaultCurrency)}</span>
+                      </div>
+                      <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                        <span>Medicare</span>
+                        <span>{formatCurrency(medicare, defaultCurrency)}</span>
+                      </div>
+                      <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                        <span>State Tax</span>
+                        <span>{formatCurrency(stateTax, defaultCurrency)}</span>
+                      </div>
+                      <div className="flex justify-between py-1 text-slate-600 dark:text-slate-300">
+                        <span>Custom Deductions</span>
+                        <span>{formatCurrency(customDeductions, defaultCurrency)}</span>
+                      </div>
+                      <div className="flex justify-between py-1.5 font-bold border-t border-slate-100 dark:border-slate-800/80 text-slate-800 dark:text-slate-100 mt-2">
+                        <span>Total Withheld</span>
+                        <span>{formatCurrency(totalTax + customDeductions, defaultCurrency)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Net Total Summary */}
+                  <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-xl flex justify-between items-center border border-slate-100 dark:border-slate-800">
+                    <div>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Net Salary Payable</span>
+                      <h3 className="text-2xl font-black text-slate-800 dark:text-white mt-0.5">{formatCurrency(netPayable, defaultCurrency)}</h3>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-amber-100 text-amber-800">Draft</span>
+                    </div>
+                  </div>
+
+                  {/* Footer terms */}
+                  <div className="text-center text-[9px] text-slate-400 mt-6 border-t pt-4 border-slate-100 dark:border-slate-800">
+                    <p>This is a computer-generated document and does not require a physical signature.</p>
+                    <p className="mt-0.5">HCM.ai Payroll Processing Service Platform. Confidential. © 2026</p>
                   </div>
                 </div>
               </div>

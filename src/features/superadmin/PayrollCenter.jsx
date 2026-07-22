@@ -355,36 +355,7 @@ const PayrollCenter = () => {
 
   // --- Print Payslip stub ---
   const handlePrintPayslip = () => {
-    const printContent = payslipPrintRef.current.innerHTML;
-    const originalContent = document.body.innerHTML;
-
-    const printWindow = window.open('', '_blank', 'width=800,height=800');
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Payslip - ${selectedRecord?.employeeName}</title>
-          <style>
-            body { font-family: 'Inter', sans-serif; padding: 40px; color: #1e293b; }
-            .border { border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; }
-            .header { display: flex; justify-content: space-between; border-bottom: 2px solid #6366f1; padding-bottom: 15px; margin-bottom: 20px; }
-            .grid { display: grid; grid-cols-2; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-            th, td { border-bottom: 1px solid #f1f5f9; padding: 10px 0; text-align: left; }
-            th { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: bold; }
-            .total { font-weight: bold; background: #f8fafc; padding: 12px; font-size: 16px; border-top: 2px solid #6366f1; display: flex; justify-content: space-between; }
-          </style>
-        </head>
-        <body>
-          <div class="border">
-            ${printContent}
-          </div>
-          <script>
-            window.onload = function() { window.print(); window.close(); }
-          </script>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+    window.print();
   };
 
   const handleEmailPayslip = () => {
@@ -1116,11 +1087,11 @@ const PayrollCenter = () => {
               </button>
 
               {/* Printable Area Wrapper */}
-              <div ref={payslipPrintRef} className="space-y-6">
+              <div id="payslip-print-container" ref={payslipPrintRef} className="space-y-6">
                 {/* Payslip Header Info */}
                 <div className="flex justify-between items-start border-b border-primary-100 dark:border-slate-800 pb-4 mt-2">
                   <div>
-                    <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-wider">HCM.ai Solutions</h2>
+                    <h2 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-wider">GlobalTech Solutions</h2>
                     <p className="text-[9px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest mt-0.5">Enterprise Employee Paystub</p>
                   </div>
                   <div className="text-right mr-6">
@@ -1236,7 +1207,7 @@ const PayrollCenter = () => {
                 {/* Footer terms */}
                 <div className="text-center text-[9px] text-slate-400 mt-6 border-t pt-4 border-slate-100 dark:border-slate-800">
                   <p>This is a computer-generated document and does not require a physical signature.</p>
-                  <p className="mt-0.5">HCM.ai Payroll Processing Service Platform. Confidential. © 2026</p>
+                  <p className="mt-0.5">GlobalTech Solutions Payroll Processing Service Platform. Confidential. © {new Date().getFullYear()}</p>
                 </div>
               </div>
 

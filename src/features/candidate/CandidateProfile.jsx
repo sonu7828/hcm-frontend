@@ -248,7 +248,11 @@ const CandidateProfile = () => {
                           ) : (
                             <input
                               type={field.type}
-                              value={formData[field.key] || ''}
+                              value={
+                                field.type === 'date' && formData[field.key] 
+                                  ? String(formData[field.key]).split('T')[0] 
+                                  : formData[field.key] || ''
+                              }
                               readOnly={!isEditing}
                               onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
                               className={cn(
