@@ -81,6 +81,7 @@ const LandingPage = () => {
   // Careers application modal states
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [applyJobTitle, setApplyJobTitle] = useState('');
+  const [applyJobId, setApplyJobId] = useState('');
   const [applyStep, setApplyStep] = useState(1);
   const [applyFormData, setApplyFormData] = useState({ name: '', email: '', phone: '', resumeName: '', portfolioUrl: '', explanation: '' });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -266,10 +267,11 @@ const [activeRole, setActiveRole] = useState(null);
 
       {/* 16. CAREERS SECTION */}
       <CareersSection 
-        setApplyJobTitle={setApplyJobTitle}
-        setApplyStep={setApplyStep}
-        setApplyFormData={setApplyFormData}
-        setIsApplyModalOpen={setIsApplyModalOpen}
+        setApplyJobTitle={setApplyJobTitle} 
+        setApplyJobId={setApplyJobId}
+        setApplyStep={setApplyStep} 
+        setApplyFormData={setApplyFormData} 
+        setIsApplyModalOpen={setIsApplyModalOpen} 
       />
 
       {/* 17. CONTACT SECTION */}
@@ -749,6 +751,7 @@ const [activeRole, setActiveRole] = useState(null);
                         
                         // Submit application to backend
                         await publicAPI.submitCareerApplication({
+                          jobId: applyJobId,
                           jobTitle: applyJobTitle,
                           ...applyFormData,
                           aiScore: score
@@ -765,23 +768,37 @@ const [activeRole, setActiveRole] = useState(null);
                   >
                     <div className="space-y-2">
                       <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Resume Upload</label>
-                      <div
-                        onClick={() => {
-                          setApplyFormData({ ...applyFormData, resumeName: 'resume_pdf_hcm.pdf' });
-                        }}
-                        className="border-2 border-dashed border-slate-200 hover:border-primary-500 rounded-3xl p-6 text-center cursor-pointer transition-all bg-slate-50 flex flex-col items-center justify-center gap-2 group"
-                      >
+                      <div className="border-2 border-dashed border-slate-200 hover:border-primary-500 rounded-3xl p-6 text-center cursor-pointer transition-all bg-slate-50 flex flex-col items-center justify-center gap-2 group relative">
+                        <input 
+                          type="file" 
+                          accept=".pdf,.doc,.docx"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files.length > 0) {
+                              const file = e.target.files[0];
+                              const reader = new FileReader();
+                              reader.onload = (event) => {
+                                setApplyFormData({ 
+                                  ...applyFormData, 
+                                  resumeName: file.name,
+                                  resumeData: event.target.result
+                                });
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
                         <UploadCloud size={32} className="text-slate-450 group-hover:text-primary-600 transition-colors" />
                         {applyFormData.resumeName ? (
-                          <div className="text-sm font-bold text-emerald-600 flex items-center gap-1.5">
+                          <div className="text-sm font-bold text-emerald-600 flex items-center gap-1.5 z-10">
                             <CheckCircle2 size={16} />
                             <span>{applyFormData.resumeName} uploaded successfully</span>
                           </div>
                         ) : (
-                          <>
+                          <div className="z-10 flex flex-col items-center gap-1">
                             <span className="text-xs font-bold text-slate-800">Click to upload your resume (PDF, DOCX)</span>
                             <span className="text-[9px] text-slate-450 uppercase font-black tracking-widest">Max file size 10MB</span>
-                          </>
+                          </div>
                         )}
                       </div>
                     </div>

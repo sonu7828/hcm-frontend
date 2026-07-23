@@ -11,9 +11,18 @@ import {
   Zap,
   Globe
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { cn } from '../../utils/cn';
+
+const ROLE_ROUTES = {
+  SUPERADMIN: '/superadmin/dashboard',
+  ADMIN: '/admin/dashboard',
+  HR: '/hr/dashboard',
+  MANAGER: '/manager/dashboard',
+  EMPLOYEE: '/employee/dashboard',
+  CANDIDATE: '/candidate/dashboard',
+};
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -21,7 +30,15 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('admin');
   const [loading, setLoading] = useState(false);
-  const { login, authError } = useAuth();
+  const { login, authError, user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      const route = user.landingPage || ROLE_ROUTES[user.role] || '/employee/dashboard';
+      navigate(route, { replace: true });
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const demoCredentials = {
     superadmin: { email: 'superadmin@hcm.ai', password: 'password123' },
@@ -230,9 +247,20 @@ const LoginPage = () => {
               <div className="relative flex justify-center text-xs uppercase font-bold text-slate-400"><span className="bg-white px-4">Or continue with</span></div>
             </div>
 
-            <button type="button" className="btn-secondary w-full h-12 flex items-center justify-center gap-3">
+            <button 
+              type="button" 
+              onClick={async () => {
+                setLoading(true);
+                // Simulate Google OAuth delay
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                await login(email, password, role);
+                setLoading(false);
+              }}
+              disabled={loading}
+              className="btn-secondary w-full h-12 flex items-center justify-center gap-3 disabled:opacity-50"
+            >
               <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-5 h-5" alt="Google" />
-              <span className="font-bold">Google Workspace</span>
+              <span className="font-bold">{loading ? 'Authenticating...' : 'Google Workspace'}</span>
             </button>
           </form>
 

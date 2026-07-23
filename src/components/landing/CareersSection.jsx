@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Globe, Brain, Target, Heart, Building, ArrowRight } from 'lucide-react';
+import { Globe, Brain, Target, Heart, Building, ArrowRight, Loader2 } from 'lucide-react';
+import { publicAPI } from '../../utils/apiService';
 
 const fadeIn = {
   initial: { opacity: 0, y: 20 },
@@ -11,10 +12,30 @@ const fadeIn = {
 
 export default function CareersSection({ 
   setApplyJobTitle, 
+  setApplyJobId,
   setApplyStep, 
   setApplyFormData, 
   setIsApplyModalOpen 
 }) {
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJobs = async () => {
+      try {
+        const response = await publicAPI.getAvailableJobs();
+        if (response.data?.success) {
+          setJobs(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching jobs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchJobs();
+  }, []);
+
   const getCurrencySymbol = () => '$';
 
   return (
@@ -51,39 +72,46 @@ export default function CareersSection({
 
           <motion.div {...fadeIn} className="lg:col-span-7 space-y-6">
             <h3 className="text-xl font-black text-black tracking-tight mb-2">Open Opportunities</h3>
-            {[
-              { title: 'Senior AI Engineer (NLP/LLMs)', dept: 'Engineering', loc: 'Remote (US/EU)', type: 'Full-time' },
-              { title: 'Senior Frontend Engineer (React)', dept: 'Engineering', loc: 'Hybrid (SF/NYC)', type: 'Full-time' },
-              { title: 'Enterprise Customer Success Lead', dept: 'Operations', loc: 'On-site (London)', type: 'Full-time' },
-              { title: 'Growth Marketing Manager', dept: 'Marketing', loc: 'Remote', type: 'Full-time' }
-            ].map((job, idx) => (
-              <div key={idx} className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-soft hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group">
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="px-3 py-1 bg-slate-50 text-slate-400 border border-slate-100 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
-                      <Building size={10} />
-                      {job.dept}
-                    </span>
-                    <span className="px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-[9px] font-black uppercase tracking-widest">
-                      {job.loc}
-                    </span>
-                  </div>
-                  <h4 className="text-lg font-black text-black tracking-tight group-hover:text-primary-600 transition-colors">{job.title}</h4>
-                  <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">{job.type} • Competitive Equity</p>
-                </div>
-                <button
-                  onClick={() => {
-                    if(setApplyJobTitle) setApplyJobTitle(job.title);
-                    if(setApplyStep) setApplyStep(1);
-                    if(setApplyFormData) setApplyFormData({ name: '', email: '', phone: '', resumeName: '', portfolioUrl: '', explanation: '' });
-                    if(setIsApplyModalOpen) setIsApplyModalOpen(true);
-                  }}
-                  className="sm:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-600 transition-all flex items-center justify-center gap-2 group-hover:scale-105"
-                >
-                  Apply Now <ArrowRight size={14} />
-                </button>
+            
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
               </div>
-            ))}
+            ) : jobs.length > 0 ? (
+              jobs.map((job, idx) => (
+                <div key={job.id || idx} className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-100 shadow-soft hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group">
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-3 py-1 bg-slate-50 text-slate-400 border border-slate-100 rounded-full text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <Building size={10} />
+                        {job.dept || job.department || 'General'}
+                      </span>
+                      <span className="px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-[9px] font-black uppercase tracking-widest">
+                        {job.loc || job.location || 'Remote'}
+                      </span>
+                    </div>
+                    <h4 className="text-lg font-black text-black tracking-tight group-hover:text-primary-600 transition-colors">{job.title}</h4>
+                    <p className="text-xs font-bold text-slate-600 uppercase tracking-widest">{(job.type || job.jobType) || 'Full-time'} • Competitive Equity</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      if(setApplyJobTitle) setApplyJobTitle(job.title);
+                      if(setApplyJobId && job.id) setApplyJobId(job.id);
+                      if(setApplyStep) setApplyStep(1);
+                      if(setApplyFormData) setApplyFormData({ name: '', email: '', phone: '', resumeName: '', portfolioUrl: '', explanation: '' });
+                      if(setIsApplyModalOpen) setIsApplyModalOpen(true);
+                    }}
+                    className="sm:w-auto px-6 py-3.5 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-600 transition-all flex items-center justify-center gap-2 group-hover:scale-105"
+                  >
+                    Apply Now <ArrowRight size={14} />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <div className="bg-white p-8 rounded-[2rem] border border-slate-100 text-center">
+                <p className="text-slate-500 font-medium">No open opportunities at the moment. Please check back later!</p>
+              </div>
+            )}
           </motion.div>
         </div>
       </div>

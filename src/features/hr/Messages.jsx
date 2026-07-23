@@ -1,71 +1,91 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Search, Plus, MoreVertical, Phone, Video, Send, 
+  Search, Plus, Send, 
   Paperclip, Smile, Image as ImageIcon, MessageSquare, 
-  CheckCheck, ChevronLeft, SquarePen
+  CheckCheck, ChevronLeft, SquarePen, CheckCircle, X
 } from 'lucide-react';
 import { cn } from '../../utils/cn';
+import { useHR } from '../../context/HRContext';
+import { useAuth } from '../../hooks/useAuth';
+import CenterModal from '../../shared/components/layout/CenterModal';
+import { getBackendURL } from '../../utils/apiService';
 
 const Messages = () => {
-  const [selectedChat, setSelectedChat] = useState(1);
-  const [activeTab, setActiveTab] = useState('all');
+  const { tickets = [], createTicket, replyToTicket, closeTicket, employees = [], showToast } = useHR();
+  const { user } = useAuth();
+
+  const [selectedChat, setSelectedChat] = useState(null);
   const [inputText, setInputText] = useState('');
+  const [isNewThreadOpen, setIsNewThreadOpen] = useState(false);
+  const [newThreadData, setNewThreadData] = useState({ to: '', subject: '', message: '' });
+  
+  const fileInputRef = useRef(null);
+  const [attachment, setAttachment] = useState(null);
 
-  const [conversations, setConversations] = useState([
-    { id: 1, name: 'Alice Cooper', role: 'Candidate', lastMsg: 'I have shared the updated portfolio link!', time: '10:30 AM', unread: 2, img: 'https://ui-avatars.com/api/?name=Alice+Cooper', status: 'online' },
-    { id: 2, name: 'John Wick', role: 'Candidate', lastMsg: 'When can I expect the final feedback?', time: 'Yesterday', unread: 0, img: 'https://ui-avatars.com/api/?name=John+Wick', status: 'offline' },
-    { id: 3, name: 'Sarah Johnson', role: 'Team Lead', lastMsg: 'The technical round was impressive.', time: 'Oct 22', unread: 0, img: 'https://ui-avatars.com/api/?name=Sarah+Johnson', status: 'online' },
-  ]);
-
-  const [messages, setMessages] = useState({
-    1: [
-      { id: 1, text: 'Hi Alice, how is the interview preparation going?', time: '09:15 AM', type: 'sent' },
-      { id: 2, text: 'Hello! It is going great. I have already reviewed the company culture video you sent.', time: '09:20 AM', type: 'received' },
-      { id: 3, text: 'Great! I have shared the updated portfolio link! Please check the latest cases.', time: '10:30 AM', type: 'received' },
-    ],
-    2: [
-      { id: 1, text: 'When can I expect the final feedback?', time: 'Yesterday', type: 'received' }
-    ],
-    3: [
-      { id: 1, text: 'The technical round was impressive.', time: 'Oct 22', type: 'received' }
-    ]
+  // Map tickets to conversations format
+  const conversations = tickets.map(ticket => {
+    const lastMessage = ticket.messages?.[ticket.messages.length - 1];
+    return {
+      id: ticket.id,
+      name: ticket.user?.employeeProfile?.fullName || ticket.user?.email || 'Unknown User',
+      role: 'Employee',
+      lastMsg: lastMessage?.text || ticket.subject,
+      time: lastMessage ? new Date(lastMessage.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : new Date(ticket.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      unread: 0,
+      img: `https://ui-avatars.com/api/?name=${encodeURIComponent(ticket.user?.employeeProfile?.fullName || ticket.user?.email || 'U')}&background=random`,
+      status: ticket.status === 'OPEN' ? 'online' : 'offline',
+      rawTicket: ticket
+    };
   });
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!inputText.trim() || !selectedChat) return;
-
-    const newMessage = {
-      id: Date.now(),
-      text: inputText,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      type: 'sent'
-    };
-
-    setMessages(prev => ({
-      ...prev,
-      [selectedChat]: [...(prev[selectedChat] || []), newMessage]
+  const messages = {};
+  tickets.forEach(ticket => {
+    messages[ticket.id] = (ticket.messages || []).map(msg => ({
+      id: msg.id,
+      text: msg.text,
+      time: new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      type: msg.senderId === user?.id ? 'sent' : 'received',
+      attachmentUrl: msg.attachmentUrl
     }));
+  });
 
-    setConversations(prev => prev.map(c => 
-      c.id === selectedChat ? { ...c, lastMsg: inputText, time: newMessage.time, unread: 0 } : c
-    ));
+  const handleSendMessage = async (e) => {
+    e.preventDefault();
+    if ((!inputText.trim() && !attachment) || !selectedChat) return;
 
+    if (attachment) {
+      const formData = new FormData();
+      if (inputText.trim()) formData.append('text', inputText);
+      formData.append('file', attachment);
+      await replyToTicket(selectedChat, formData);
+    } else {
+      await replyToTicket(selectedChat, inputText); // Or we can pass { text: inputText } if hrAPI expects it, wait hrAPI in HRContext does {text: text}, but if we pass formData... let's check HRContext!
+      // Wait, HRContext replyToTicket takes (id, text). I should pass FormData directly!
+      // Let's modify HRContext instead to accept payload directly, or we can just send FormData from HRContext.
+    }
+    
     setInputText('');
+    setAttachment(null);
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setAttachment(e.target.files[0]);
+    }
+  };
+
+  const handleStartThread = async (e) => {
+    e.preventDefault();
+    if (!newThreadData.to || !newThreadData.subject || !newThreadData.message) return;
+    await createTicket(newThreadData);
+    setIsNewThreadOpen(false);
+    setNewThreadData({ to: '', subject: '', message: '' });
   };
 
   const handleSelectChat = (id) => {
     setSelectedChat(id);
-    setConversations(prev => prev.map(c => c.id === id ? { ...c, unread: 0 } : c));
   };
-
-  const filteredConversations = conversations.filter(c => {
-    if (activeTab === 'all') return true;
-    if (activeTab === 'candidate' && c.role === 'Candidate') return true;
-    if (activeTab === 'teams' && c.role !== 'Candidate') return true;
-    return false;
-  });
 
   return (
     <div className="flex flex-col h-[calc(100vh-120px)] animate-fade-in focus:outline-none">
@@ -74,7 +94,7 @@ const Messages = () => {
         <div className={cn("w-full lg:w-96 flex flex-col border-r border-slate-50 transition-all z-10", selectedChat ? "hidden lg:flex" : "flex")}>
           <div className="p-6 border-b border-slate-50 flex items-center justify-between shrink-0">
              <h2 className="text-xl font-extrabold text-slate-900 tracking-tight dark:text-white">Messages</h2>
-             <button className="p-2.5 bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-100 hover:bg-primary-700 active:scale-95 transition-all">
+             <button onClick={() => setIsNewThreadOpen(true)} className="p-2.5 bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-100 hover:bg-primary-700 active:scale-95 transition-all">
                 <SquarePen size={20} />
              </button>
           </div>
@@ -84,21 +104,10 @@ const Messages = () => {
                 <Search className="absolute left-3 top-3 text-slate-400" size={18} />
                 <input type="text" placeholder="Search conversations..." className="input-field pl-10 h-11" />
              </div>
-             <div className="flex p-1 bg-slate-50 rounded-xl">
-                {['All', 'Candidate', 'Teams'].map((t) => (
-                   <button 
-                     key={t}
-                     onClick={() => setActiveTab(t.toLowerCase())}
-                     className={cn("flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all", activeTab === t.toLowerCase() ? "bg-white text-primary-600 shadow-sm" : "text-slate-400 hover:text-slate-600")}
-                   >
-                      {t}
-                   </button>
-                ))}
-             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto scrollbar-hide divide-y divide-slate-50">
-             {filteredConversations.map((chat) => (
+             {conversations.map((chat) => (
                 <button
                   key={chat.id}
                   onClick={() => handleSelectChat(chat.id)}
@@ -146,9 +155,11 @@ const Messages = () => {
                     </div>
                  </div>
                  <div className="flex items-center gap-1.5">
-                    <button className="p-2.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"><Phone size={20} /></button>
-                    <button className="p-2.5 text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all"><Video size={20} /></button>
-                    <button className="p-2.5 text-slate-400 hover:text-slate-900 hover:bg-slate-50 rounded-xl transition-all"><MoreVertical size={20} /></button>
+                    {conversations.find(c => c.id === selectedChat)?.rawTicket?.status !== 'RESOLVED' && (
+                       <button onClick={() => closeTicket(selectedChat)} className="p-2.5 text-emerald-500 hover:text-white hover:bg-emerald-500 rounded-xl transition-all flex items-center gap-2" title="Mark as Resolved">
+                          <CheckCircle size={20} />
+                       </button>
+                    )}
                  </div>
               </div>
 
@@ -156,6 +167,11 @@ const Messages = () => {
                  {(messages[selectedChat] || []).map((msg) => (
                     <div key={msg.id} className={cn("flex flex-col max-w-[75%]", msg.type === 'sent' ? "ml-auto items-end" : "items-start")}>
                        <div className={cn("px-5 py-4 rounded-3xl text-sm font-medium leading-relaxed shadow-sm transition-all", msg.type === 'sent' ? "bg-slate-900 text-white rounded-tr-none" : "bg-white text-slate-700 border border-slate-100 rounded-tl-none")}>
+                          {msg.attachmentUrl && (
+                             <a href={msg.attachmentUrl.startsWith('/') ? `${getBackendURL()}${msg.attachmentUrl}` : msg.attachmentUrl} target="_blank" rel="noopener noreferrer" className="block mb-2 text-primary-300 hover:text-primary-200 underline break-all" onClick={(e) => e.stopPropagation()}>
+                                📎 View Attachment
+                             </a>
+                          )}
                           {msg.text}
                        </div>
                        <div className="flex items-center gap-1.5 mt-2 px-1">
@@ -167,7 +183,16 @@ const Messages = () => {
               </div>
 
               <div className="p-6 border-t border-slate-50 bg-white shrink-0">
+                 {attachment && (
+                    <div className="mb-2 px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-between">
+                       <span className="text-sm font-medium text-slate-700 truncate flex-1">{attachment.name}</span>
+                       <button type="button" onClick={() => setAttachment(null)} className="p-1 text-slate-400 hover:text-red-500 transition-colors">
+                          <X size={16} />
+                       </button>
+                    </div>
+                 )}
                  <form onSubmit={handleSendMessage} className="bg-slate-50 border border-slate-100 rounded-[2rem] p-2 pl-6 pr-2 flex items-center gap-4 focus-within:ring-4 focus-within:ring-primary-50 transition-all overflow-visible relative group">
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
                     <button type="button" className="text-slate-400 hover:text-primary-600 transition-colors"><Smile size={22} /></button>
                     <input 
                       type="text" 
@@ -177,21 +202,12 @@ const Messages = () => {
                       className="flex-1 bg-transparent border-none focus:ring-0 text-sm font-medium text-slate-900 h-10"
                     />
                     <div className="flex items-center gap-1">
-                       <button type="button" className="p-2.5 text-slate-400 hover:text-primary-600 hover:bg-white rounded-full transition-all"><Paperclip size={20} /></button>
-                       <button type="button" className="p-2.5 text-slate-400 hover:text-primary-600 hover:bg-white rounded-full transition-all"><ImageIcon size={20} /></button>
-                       <button type="submit" disabled={!inputText.trim()} className="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-primary-200 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-90 transition-all ml-1">
+                       <button type="button" onClick={() => fileInputRef.current?.click()} className="p-2.5 text-slate-400 hover:text-primary-600 hover:bg-white rounded-full transition-all"><Paperclip size={20} /></button>
+                       <button type="submit" disabled={!inputText.trim() && !attachment} className="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center shadow-lg shadow-primary-200 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed active:scale-90 transition-all ml-1">
                           <Send size={18} />
                        </button>
                     </div>
                  </form>
-                 
-                 <div className="mt-4 flex flex-wrap gap-2">
-                    {['Interview Invite', 'Follow-up', 'Offer Pending'].map(t => (
-                       <button key={t} onClick={() => setInputText(t)} type="button" className="px-3 py-1 bg-slate-50 text-[9px] font-bold text-slate-500 uppercase tracking-widest rounded-full border border-slate-100 hover:bg-primary-50 hover:text-primary-600 hover:border-primary-100 transition-all">
-                          {t}
-                       </button>
-                    ))}
-                 </div>
               </div>
             </>
           ) : (
@@ -201,7 +217,7 @@ const Messages = () => {
                 </div>
                 <h3 className="text-2xl font-extrabold text-slate-900 mb-2 dark:text-white">Select a Conversation</h3>
                 <p className="text-slate-500 font-medium max-w-sm mb-10">Choose a candidate or team member from the sidebar to start corresponding.</p>
-                <button className="px-8 py-3.5 bg-primary-600 text-white rounded-2xl font-bold hover:bg-primary-700 transition-all shadow-lg active:scale-95 flex items-center gap-2">
+                <button onClick={() => setIsNewThreadOpen(true)} className="px-8 py-3.5 bg-primary-600 text-white rounded-2xl font-bold hover:bg-primary-700 transition-all shadow-lg active:scale-95 flex items-center gap-2">
                    <SquarePen size={18} />
                    <span>Start a New Thread</span>
                 </button>
@@ -209,6 +225,48 @@ const Messages = () => {
           )}
         </div>
       </div>
+
+      <CenterModal isOpen={isNewThreadOpen} onClose={() => setIsNewThreadOpen(false)} title="Start New Thread" maxWidth="max-w-md">
+         <form onSubmit={handleStartThread} className="space-y-4 p-8 pt-0">
+            <div>
+               <label className="block text-xs font-bold text-slate-700 uppercase tracking-widest mb-2">To</label>
+               <select 
+                 value={newThreadData.to} 
+                 onChange={e => setNewThreadData({...newThreadData, to: e.target.value})}
+                 className="input-field w-full"
+                 required
+               >
+                  <option value="">Select recipient...</option>
+                  {employees.map(emp => (
+                     <option key={emp.id} value={emp.userId}>{emp.fullName}</option>
+                  ))}
+               </select>
+            </div>
+            <div>
+               <label className="block text-xs font-bold text-slate-700 uppercase tracking-widest mb-2">Subject</label>
+               <input 
+                 type="text" 
+                 value={newThreadData.subject}
+                 onChange={e => setNewThreadData({...newThreadData, subject: e.target.value})}
+                 className="input-field w-full"
+                 required
+               />
+            </div>
+            <div>
+               <label className="block text-xs font-bold text-slate-700 uppercase tracking-widest mb-2">Message</label>
+               <textarea 
+                 value={newThreadData.message}
+                 onChange={e => setNewThreadData({...newThreadData, message: e.target.value})}
+                 className="input-field h-24 py-3 w-full resize-none"
+                 required
+               ></textarea>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 pt-4">
+               <button type="button" onClick={() => setIsNewThreadOpen(false)} className="btn-secondary w-full sm:flex-1">Cancel</button>
+               <button type="submit" className="btn-primary w-full sm:flex-1">Send Message</button>
+            </div>
+         </form>
+      </CenterModal>
     </div>
   );
 };

@@ -71,6 +71,10 @@ export const AuthProvider = ({ children }) => {
       const response = await authAPI.login({ email, password });
       const { token, user: userData } = response.data.data;
 
+      // Clear stale session data from any previous un-logged-out sessions
+      sessionStorage.removeItem('hcm_preview_role');
+      sessionStorage.removeItem('hcm_current_scope');
+
       // Token aur user info save karo
       localStorage.setItem('hcm_token', token);
       localStorage.setItem('hcm_user', JSON.stringify(userData));

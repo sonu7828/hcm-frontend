@@ -28,7 +28,7 @@ import { useDateFormat } from '../../hooks/useDateFormat';
 import CenterModal from '../../shared/components/layout/CenterModal';
 
 const EmployeeAttendance = () => {
-  const { attendance, clockIn, clockOut, showToast, refetch, profile } = useEmployee();
+  const { attendance, clockIn, clockOut, showToast, refetch, profile, holidays, leaves } = useEmployee();
   const { formatDate } = useDateFormat();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,7 +43,8 @@ const EmployeeAttendance = () => {
 
   useEffect(() => {
     refetch.fetchAttendance();
-  }, [refetch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let interval;
@@ -109,7 +110,23 @@ const EmployeeAttendance = () => {
     const cellDate = new Date(calendarYear, calendarMonthIdx, day);
     const dateStr = `${calendarYear}-${String(calendarMonthIdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const dayOfWeek = cellDate.getDay();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    let isWeekend = false;
+    let weekendType = '';
+    
+    if (profile?.weekends) {
+      const dayNamesMap = { 0: 'SUNDAY', 1: 'MONDAY', 2: 'TUESDAY', 3: 'WEDNESDAY', 4: 'THURSDAY', 5: 'FRIDAY', 6: 'SATURDAY' };
+      const wk = profile.weekends.find(w => {
+        const wStr = String(w.dayOfWeek).toUpperCase();
+        return wStr === dayNamesMap[dayOfWeek] || wStr === String(dayOfWeek);
+      });
+      if (wk) {
+        isWeekend = true;
+        weekendType = wk.type;
+      }
+    } else {
+      isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      weekendType = 'FullDay';
+    }
 
     const record = (attendance.history || []).find(h => {
       if (!h) return false;
@@ -119,11 +136,21 @@ const EmployeeAttendance = () => {
              hDate.getDate() === day;
     });
 
+    const isHoliday = holidays?.some(h => new Date(h.date).toDateString() === cellDate.toDateString());
+    const isApprovedLeave = leaves?.requests?.some(l => {
+      if (l.status !== 'Approved') return false;
+      const s = new Date(l.rawStartDate || l.startDate);
+      const e = new Date(l.rawEndDate || l.endDate);
+      s.setHours(0, 0, 0, 0);
+      e.setHours(23, 59, 59, 999);
+      return cellDate >= s && cellDate <= e;
+    });
+
     let status = 'Not Logged';
     let bgClass = 'bg-slate-50 dark:bg-slate-800/40 text-slate-400 border-slate-100 dark:border-slate-800';
     let badgeClass = 'bg-slate-100 dark:bg-slate-800 text-slate-500';
 
-    if (record) {
+    if (record && ['Present', 'Late'].includes(record.status)) {
       status = record.status;
       if (record.status === 'Present') {
         bgClass = 'bg-emerald-50/70 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/40';
@@ -131,14 +158,23 @@ const EmployeeAttendance = () => {
       } else if (record.status === 'Late') {
         bgClass = 'bg-amber-50/70 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/40';
         badgeClass = 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300';
-      } else if (record.status === 'Leave' || record.status === 'Sick Leave' || record.status === 'Annual Leave') {
-        bgClass = 'bg-indigo-50/70 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-900/40';
-        badgeClass = 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300';
       }
+    } else if (isApprovedLeave || (record && ['Leave', 'Sick Leave', 'Annual Leave'].includes(record.status))) {
+      status = 'On Leave';
+      bgClass = 'bg-indigo-50/70 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-900/40';
+      badgeClass = 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300';
+    } else if (isHoliday) {
+      status = 'Holiday';
+      bgClass = 'bg-rose-50/70 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/40';
+      badgeClass = 'bg-rose-100 dark:bg-rose-900/50 text-rose-700 dark:text-rose-300';
     } else if (isWeekend) {
-      status = 'Weekend';
+      status = weekendType === 'HALF_DAY' ? 'Weekend (Half Day)' : 'Weekend';
       bgClass = 'bg-slate-100/50 dark:bg-slate-850/40 border-slate-200/50 dark:border-slate-800/50';
       badgeClass = 'bg-slate-200/60 dark:bg-slate-800 text-slate-500';
+    } else if (record && record.status === 'Absent') {
+      status = 'Absent';
+      bgClass = 'bg-red-50/70 dark:bg-red-950/20 border-red-200 dark:border-red-900/40';
+      badgeClass = 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300';
     }
 
     calendarCells.push({

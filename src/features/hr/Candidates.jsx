@@ -482,8 +482,11 @@ const Candidates = () => {
                      </div>
                      <div className="flex items-center gap-3 text-slate-500">
                         <button onClick={() => {
+                           const resolvedUrl = (previewingResume.resumeUrl && (previewingResume.resumeUrl.startsWith('http') || previewingResume.resumeUrl.startsWith('data:'))) 
+                                               ? previewingResume.resumeUrl 
+                                               : '/demo_resume.pdf';
                            const link = document.createElement('a');
-                           link.href = previewingResume.resumeUrl || '#';
+                           link.href = resolvedUrl;
                            link.download = `${previewingResume.name.replace(/\s+/g, '_')}_Resume.pdf`;
                            document.body.appendChild(link);
                            link.click();
@@ -494,9 +497,9 @@ const Candidates = () => {
                      </div>
                   </div>
                   <div className="flex-1 bg-slate-100 dark:bg-slate-950 overflow-y-auto p-4 sm:p-10 flex justify-center min-h-[70vh]">
-                     {previewingResume.resumeUrl && previewingResume.resumeUrl.startsWith('http') ? (
+                     {previewingResume.resumeUrl ? (
                         <iframe 
-                           src={previewingResume.resumeUrl} 
+                           src={(previewingResume.resumeUrl.startsWith('http') || previewingResume.resumeUrl.startsWith('data:')) ? previewingResume.resumeUrl : '/demo_resume.pdf'}
                            className="w-full max-w-4xl bg-white shadow-2xl rounded-2xl min-h-[70vh] border border-slate-200 dark:border-slate-800" 
                            title="Resume Preview"
                         />

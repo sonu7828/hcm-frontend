@@ -136,7 +136,9 @@ export const EmployeeProvider = ({ children }) => {
           l.status === 'MANAGER_APPROVED' ? 'MANAGER_APPROVED' : 'Rejected',
         days: l.totalDays || 0,
         startDate: l.startDate ? formatDate(l.startDate) : '',
-        endDate: l.endDate ? formatDate(l.endDate) : ''
+        endDate: l.endDate ? formatDate(l.endDate) : '',
+        rawStartDate: l.startDate,
+        rawEndDate: l.endDate
       }));
       const approved = requests.filter(l => l.status === 'Approved');
       setLeaves({

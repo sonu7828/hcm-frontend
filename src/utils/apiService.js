@@ -15,6 +15,11 @@ const getBaseURL = () => {
   return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
 };
 
+export const getBackendURL = () => {
+  const url = getBaseURL();
+  return url.endsWith('/api') ? url.slice(0, -4) : url;
+};
+
 const API = axios.create({
   baseURL: getBaseURL(),
   headers: { 'Content-Type': 'application/json' },
@@ -169,7 +174,10 @@ export const hrAPI = {
   getAllLeaves: () => API.get('/hr/leaves'),
 
   getAllTickets: () => API.get('/hr/tickets'),
-  replyTicket: (id, data) => API.post(`/hr/tickets/${id}/reply`, data),
+  createTicket: (data) => API.post('/hr/tickets', data),
+  replyTicket: (id, data) => API.post(`/hr/tickets/${id}/reply`, data, {
+    headers: data instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {}
+  }),
   updateTicketStatus: (id, data) => API.patch(`/hr/tickets/${id}/status`, data),
 
   getOffers: () => API.get('/hr/offers'),

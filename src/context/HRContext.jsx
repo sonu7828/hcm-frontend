@@ -96,6 +96,8 @@ export const HRProvider = ({ children }) => {
           score = 70 + (Math.abs(hash) % 26);
         }
 
+        const getValidUrl = (...urls) => urls.find(u => u && (u.startsWith('http') || u.startsWith('data:'))) || urls.find(u => !!u) || '';
+
         return {
           id: app.id,
           name: formattedName,
@@ -119,7 +121,7 @@ export const HRProvider = ({ children }) => {
           linkedin: candidateInfo.linkedin || '',
           portfolio: candidateInfo.portfolio || '',
           skills: candidateInfo.skills ? candidateInfo.skills.split(',').map(s => s.trim()).filter(Boolean) : [],
-          resumeUrl: app.resumeUrl || candidateInfo.resumeUrl || '',
+          resumeUrl: getValidUrl(candidateInfo.resumeData, app.resumeUrl, candidateInfo.resumeUrl),
           coverLetter: app.coverLetter || '',
         };
       });
@@ -434,9 +436,20 @@ export const HRProvider = ({ children }) => {
   };
 
   // ── TICKET ACTIONS ──
-  const replyToTicket = async (id, text) => {
+  const createTicket = async (data) => {
     try {
-      await hrAPI.replyTicket(id, { text });
+      await hrAPI.createTicket(data);
+      await fetchTickets();
+      showToast('Message thread started!');
+    } catch {
+      showToast('Message thread started (demo mode)');
+    }
+  };
+
+  const replyToTicket = async (id, payload) => {
+    try {
+      const data = (payload instanceof FormData || typeof payload === 'object') ? payload : { text: payload };
+      await hrAPI.replyTicket(id, data);
       await fetchTickets();
       showToast('Reply sent!');
     } catch {
@@ -653,7 +666,7 @@ export const HRProvider = ({ children }) => {
       incrementRequests, approveIncrementRequest, rejectIncrementRequest,
       reports, fetchReports,
       pendingLeaves,
-      tickets, replyToTicket, closeTicket,
+      tickets, createTicket, replyToTicket, closeTicket,
       offers, addOffer, updateOffer, deleteOffer,
       loading,
       showToast,
