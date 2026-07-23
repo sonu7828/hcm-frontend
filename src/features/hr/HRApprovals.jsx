@@ -92,7 +92,7 @@ const HRApprovals = () => {
    const filteredRequests = useMemo(() => {
       return leaveRequests.filter(r => {
          let rStatus = r.status;
-         if (rStatus === 'MANAGER_APPROVED' || rStatus === 'HR_APPROVED') rStatus = 'Pending';
+         if (rStatus === 'MANAGER_APPROVED' || rStatus === 'HR_APPROVED' || rStatus === 'PENDING') rStatus = 'Pending';
          if (rStatus === 'APPROVED') rStatus = 'Approved';
          if (rStatus === 'REJECTED') rStatus = 'Rejected';
          const matchesTab = activeTab === 'All' ? true : rStatus === activeTab;
@@ -323,7 +323,7 @@ const HRApprovals = () => {
                                  <p className="text-[11px] font-medium text-slate-405 dark:text-slate-495 truncate italic">"{req.reason}"</p>
                               </td>
                               <td className="hcm-td text-right">
-                                 {req.status === 'MANAGER_APPROVED' || req.status === 'HR_APPROVED' || req.status === 'Pending' ? (
+                                 {req.status === 'MANAGER_APPROVED' || req.status === 'HR_APPROVED' || req.status === 'Pending' || req.status === 'PENDING' ? (
                                     <div className="flex justify-end items-center gap-2">
                                        <button
                                           onClick={() => setSelectedRequest(req)}
@@ -346,12 +346,12 @@ const HRApprovals = () => {
                                  ) : (
                                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
                                        req.status === 'APPROVED' || req.status === 'Approved' ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border-emerald-100 dark:border-emerald-900/30" :
-                                       req.status === 'MANAGER_APPROVED' || req.status === 'HR_APPROVED' || req.status === 'Pending' ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30" :
+                                       req.status === 'MANAGER_APPROVED' || req.status === 'HR_APPROVED' || req.status === 'Pending' || req.status === 'PENDING' ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30" :
                                        "bg-rose-50 dark:bg-rose-950/20 text-rose-500 dark:text-rose-455 border-rose-100 dark:border-rose-900/30"
                                     }`}>
                                        {req.status === 'MANAGER_APPROVED' ? 'Pending HR' :
                                         req.status === 'HR_APPROVED' ? 'Pending Admin' :
-                                        req.status === 'Pending' ? 'Pending Manager' : req.status}
+                                        req.status === 'Pending' || req.status === 'PENDING' ? 'Pending Manager' : req.status}
                                     </span>
                                  )}
                               </td>
@@ -425,12 +425,12 @@ const HRApprovals = () => {
                                        <span className={cn(
                                           "text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded border",
                                           req.status === 'Approved' ? "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-450 border-emerald-100 dark:border-emerald-900/30" :
-                                             req.status === 'ManagerApproved' || req.status === 'HR_APPROVED' || req.status === 'Pending' ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30" :
+                                             req.status === 'ManagerApproved' || req.status === 'HR_APPROVED' || req.status === 'Pending' || req.status === 'PENDING' ? "bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 border-amber-100 dark:border-amber-900/30" :
                                                 "bg-rose-50 dark:bg-rose-950/20 text-rose-500 dark:text-rose-455 border-rose-100 dark:border-rose-900/30"
                                        )}>
                                           {req.status === 'ManagerApproved' ? 'Pending HR' : 
                                        req.status === 'HR_APPROVED' ? 'Pending Admin' :
-                                       req.status === 'Pending' ? 'Pending Manager' : req.status}
+                                       req.status === 'Pending' || req.status === 'PENDING' ? 'Pending Manager' : req.status}
                                        </span>
                                     )}
                                  </td>
