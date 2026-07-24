@@ -351,7 +351,7 @@ const HRApprovals = () => {
                                     }`}>
                                        {req.status === 'MANAGER_APPROVED' ? 'Pending HR' :
                                         req.status === 'HR_APPROVED' ? 'Pending Admin' :
-                                        req.status === 'Pending' || req.status === 'PENDING' ? 'Pending Manager' : req.status}
+                                        req.status === 'Pending' || req.status === 'PENDING' ? (req.pendingApproverRole ? `Pending ${req.pendingApproverRole.charAt(0).toUpperCase() + req.pendingApproverRole.slice(1).toLowerCase()}` : 'Pending Manager') : req.status}
                                     </span>
                                  )}
                               </td>
@@ -430,7 +430,7 @@ const HRApprovals = () => {
                                        )}>
                                           {req.status === 'ManagerApproved' ? 'Pending HR' : 
                                        req.status === 'HR_APPROVED' ? 'Pending Admin' :
-                                       req.status === 'Pending' || req.status === 'PENDING' ? 'Pending Manager' : req.status}
+                                       req.status === 'Pending' || req.status === 'PENDING' ? (req.pendingApproverRole ? `Pending ${req.pendingApproverRole.charAt(0).toUpperCase() + req.pendingApproverRole.slice(1).toLowerCase()}` : 'Pending Manager') : req.status}
                                        </span>
                                     )}
                                  </td>

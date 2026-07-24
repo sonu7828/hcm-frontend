@@ -202,7 +202,7 @@ export const AdminProvider = ({ children, user }) => {
     if (!token) return;
     try {
       const res = await hrAPI.getIncrementRequests();
-      setIncrementRequests(res.data || []);
+      setIncrementRequests(res.data?.data || res.data || []);
     } catch (e) {
       console.error('Failed to fetch increment requests:', e);
     }

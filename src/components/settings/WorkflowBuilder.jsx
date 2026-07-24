@@ -66,7 +66,7 @@ const WorkflowBuilder = ({ workflow, onSave, onCancel }) => {
           <select value={module} onChange={e => setModule(e.target.value)} className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
             <option value="LeaveRequest">Leave Request</option>
             {/* Future modules can be added here */}
-            <option value="SalaryIncrement">Salary Increment (Future)</option>
+            <option value="SalaryIncrementRequest">Salary Increment</option>
             <option value="ExitLifecycle">Exit Lifecycle (Future)</option>
           </select>
         </div>
