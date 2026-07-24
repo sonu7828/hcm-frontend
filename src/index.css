@@ -135,8 +135,18 @@
     @apply fixed inset-0 bg-slate-900/50 dark:bg-slate-950/70 backdrop-blur-sm z-[150] flex items-center justify-center p-4;
   }
 
-  .hcm-modal {
-    @apply bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-premium p-6 w-full max-w-lg relative;
+  .hcm-modal { 
+    @apply bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-premium p-6 w-full max-w-lg relative; 
+    /* Keep the dialog from overflowing the viewport and allow its own scrolling */
+    max-height: 90vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-actions {
+    @apply sticky bottom-0 bg-white dark:bg-slate-900 pt-4 border-t border-slate-50 dark:border-slate-800/80;
+    z-index: 10;
   }
 
   /* Empty State System */

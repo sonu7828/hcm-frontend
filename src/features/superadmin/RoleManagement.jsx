@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSuperAdmin } from '../../context/SuperAdminContext';
 import { usePermissionContext } from '../../context/PermissionContext';
 import {
@@ -77,6 +77,20 @@ const RoleManagement = () => {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [selectedPermissions, setSelectedPermissions] = useState([]);
+  // Block background interaction and prevent page scroll when modal is open
+  useEffect(() => {
+    if (isModalOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
+    };
+  }, [isModalOpen]);
 
   const PERM_TO_MODULE_ACTION = {
     manage_users: { module: 'users', actions: ['view', 'create', 'edit', 'delete', 'approve', 'manage'] },
@@ -320,7 +334,7 @@ const RoleManagement = () => {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="hcm-modal"
+              className="hcm-modal flex flex-col"
             >
               <div className="p-6 border-b border-slate-50 dark:border-slate-800/80 flex items-center justify-between">
                 <h3 className="hcm-section-heading flex items-center gap-2.5">
@@ -384,7 +398,7 @@ const RoleManagement = () => {
                   </div>
                 </div>
 
-                <div className="pt-4 flex items-center gap-3 border-t border-slate-50 dark:border-slate-800/80">
+                <div className="modal-actions flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
