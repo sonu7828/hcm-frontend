@@ -40,6 +40,7 @@ import { useSuperAdmin } from '../../context/SuperAdminContext';
 import { useBenefits } from '../../features/benefits/BenefitsContext';
 import { useCurrency } from '../../hooks/useCurrency';
 import { PageHeader } from '../../shared/components/layout/PageHeader';
+import ImportModal from '../../shared/components/import/ImportModal';
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 const containerVariants = {
@@ -271,17 +272,24 @@ const CATEGORY_CONFIG = [
 // ─── MAIN COMPONENT ───────────────────────────────────────────────────────────
 const BenefitsConfig = () => {
   const { users, departments } = useSuperAdmin();
-  const { benefitPlans, addBenefitPlan, saveBenefitPlan, removeBenefitPlan } = useBenefits();
+  const { benefitPlans, addBenefitPlan, saveBenefitPlan, removeBenefitPlan, loadPlans } = useBenefits();
   const { getSymbol, getIcon, formatCurrency } = useCurrency();
   const CurrencyIcon = getIcon();
 
   const [activeTab, setActiveTab] = useState('plans');
   const [showCreate, setShowCreate] = useState(false);
   const [showConfigure, setShowConfigure] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [planSearch, setPlanSearch]     = useState('');
   const [empSearch, setEmpSearch]       = useState('');
   const [editingPlan, setEditingPlan]   = useState(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (loadPlans) {
+      loadPlans();
+    }
+  }, []);
 
   // ── Enrich benefitPlans with extra fields if they don't have them ───────────
   const plans = useMemo(() => {
@@ -462,8 +470,7 @@ const BenefitsConfig = () => {
           title="Benefits Configuration"
           subtitle="Manage organization-wide benefit plans and enrollments"
         >
-          <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImport} className="hidden" />
-          <button className="btn-secondary flex items-center gap-1.5 text-xs px-3 py-2" onClick={() => fileInputRef.current?.click()}>
+          <button className="btn-secondary flex items-center gap-1.5 text-xs px-3 py-2" onClick={() => setIsImportModalOpen(true)}>
             <Upload size={14} /> Import Plans
           </button>
           <button className="btn-secondary flex items-center gap-1.5 text-xs px-3 py-2" onClick={handleExport}>
@@ -517,7 +524,7 @@ const BenefitsConfig = () => {
           <p className="text-sm text-slate-400 mb-6">Start by creating your first benefit plan or importing existing plans</p>
           <div className="flex flex-wrap justify-center gap-3">
             <button className="btn-primary flex items-center gap-2 text-xs" onClick={() => setShowCreate(true)}><Plus size={14}/>Create Benefit Plan</button>
-            <button className="btn-secondary flex items-center gap-2 text-xs" onClick={() => fileInputRef.current?.click()}><Upload size={14}/>Import Plans</button>
+            <button className="btn-secondary flex items-center gap-2 text-xs" onClick={() => setIsImportModalOpen(true)}><Upload size={14}/>Import Plans</button>
             <button className="btn-secondary flex items-center gap-2 text-xs" onClick={() => setShowConfigure(true)}><Settings size={14}/>Configure Benefits</button>
           </div>
         </motion.div>
@@ -810,6 +817,13 @@ const BenefitsConfig = () => {
         {editingPlan && <CreatePlanModal onClose={() => setEditingPlan(null)} onSave={handleUpdatePlan} initialData={editingPlan} />}
         {showConfigure && <ConfigureBenefitsModal onClose={() => setShowConfigure(false)} />}
       </AnimatePresence>
+
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        entity="benefits"
+        onImportSuccess={loadPlans}
+      />
     </motion.div>
   );
 };

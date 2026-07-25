@@ -34,11 +34,9 @@ const ImportModal = ({ isOpen, onClose, entity = 'users', onImportSuccess }) => 
     onClose();
     if (wasSuccess) {
       if (onImportSuccess) {
-        onImportSuccess();
-      } else {
-        // Force page reload to refresh all contexts with new data
-        window.location.reload();
+        try { onImportSuccess(); } catch (e) {}
       }
+      window.location.reload();
     }
   };
 
