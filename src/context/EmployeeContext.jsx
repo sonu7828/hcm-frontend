@@ -88,10 +88,14 @@ export const EmployeeProvider = ({ children }) => {
         const outTime = h.clockOut ? new Date(h.clockOut) : null;
 
         let totalHours = '-';
-        if (inTime && outTime) {
+        if (h.totalWorkedMin !== undefined && h.totalWorkedMin > 0) {
+          const hours = Math.floor(h.totalWorkedMin / 60);
+          const mins = h.totalWorkedMin % 60;
+          totalHours = `${hours}h ${mins}m`;
+        } else if (inTime && outTime) {
           let diffMs = outTime - inTime;
             
-          // Subtract break duration if available
+          // Fallback if backend hasn't calculated it
           const breakMin = h.breakMinutes || 0;
           diffMs = Math.max(0, diffMs - (breakMin * 60000));
             

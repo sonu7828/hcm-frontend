@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -26,6 +26,7 @@ import { useCurrency } from '../../hooks/useCurrency';
 import PermissionGate from '../../shared/components/common/PermissionGate';
 import { cn } from '../../utils/cn';
 import UserModal from '../../shared/components/admin/UserModal';
+import { adminAPI } from '../../utils/apiService';
 
 const AdminDashboard = () => {
    const { users, departments, roles, payrollList, runPayroll, systemLogs, addSystemLog, showToast } = useAdmin();
@@ -36,7 +37,22 @@ const AdminDashboard = () => {
    const [isAddUserOpen, setIsAddUserOpen] = useState(false);
    const [activeAction, setActiveAction] = useState(null);
    const [growthTimeframe, setGrowthTimeframe] = useState('6months');
+   const [dashboardStats, setDashboardStats] = useState(null);
    const navigate = useNavigate();
+
+   useEffect(() => {
+      const fetchStats = async () => {
+         try {
+            const res = await adminAPI.getStats();
+            if (res.data?.success) {
+               setDashboardStats(res.data.data);
+            }
+         } catch (err) {
+            console.error('Failed to fetch dashboard stats', err);
+         }
+      };
+      fetchStats();
+   }, []);
 
    const growthData = useMemo(() => {
       const now = new Date();
@@ -147,6 +163,8 @@ const AdminDashboard = () => {
       hasModuleAccess('audit') ? { id: 'system', label: 'System Check', icon: Activity, onClick: handleSystemCheck } : null,
    ].filter(Boolean);
 
+   const orgScore = dashboardStats?.organizationScore || 88;
+
    return (
       <div className="space-y-8 pb-12 animate-fade-in focus:outline-none">
          {/* Header */}
@@ -251,9 +269,9 @@ const AdminDashboard = () => {
                      </h3>
                      <div className="space-y-6">
                         {[
-                           { label: 'Present Today', val: '94%', color: 'bg-emerald-500' },
-                           { label: 'On Leave', val: '4%', color: 'bg-indigo-500' },
-                           { label: 'Late/Absent', val: '2%', color: 'bg-rose-500' },
+                           { label: 'Present Today', val: dashboardStats?.attendanceSummary?.present || '94%', color: 'bg-emerald-500' },
+                           { label: 'On Leave', val: dashboardStats?.attendanceSummary?.onLeave || '4%', color: 'bg-indigo-500' },
+                           { label: 'Late/Absent', val: dashboardStats?.attendanceSummary?.lateAbsent || '2%', color: 'bg-rose-500' },
                         ].map((item, i) => (
                            <div key={i} className="space-y-2">
                               <div className="flex justify-between text-[10px] font-extrabold uppercase tracking-widest text-slate-450">
@@ -275,16 +293,20 @@ const AdminDashboard = () => {
                         Recent Activities
                      </h3>
                      <div className="space-y-6">
-                        {[
+                        {(dashboardStats?.recentActivities || [
                            { text: 'Payroll processed for Finance Dept', time: '2h ago', icon: CurrencyIcon, color: 'text-emerald-500' },
                            { text: 'New policy added to Compliance', time: '4h ago', icon: ShieldCheck, color: 'text-indigo-500' },
                            { text: 'System backup completed', time: '6h ago', icon: Activity, color: 'text-slate-400' },
-                        ].map((activity, i) => (
+                        ]).map((activity, i) => (
                            <div key={i} className="flex gap-4 text-left">
-                              <div className={cn("mt-1 shrink-0", activity.color)}><activity.icon size={16} /></div>
+                              <div className={cn("mt-1 shrink-0", activity.color || 'text-slate-400')}>
+                                 {activity.icon ? <activity.icon size={16} /> : <Activity size={16} />}
+                              </div>
                               <div>
                                  <p className="text-sm font-bold text-slate-700 dark:text-slate-200 leading-snug">{activity.text}</p>
-                                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">{activity.time}</p>
+                                 <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">
+                                    {activity.time ? (typeof activity.time === 'string' && activity.time.includes('ago') ? activity.time : new Date(activity.time).toLocaleString()) : 'N/A'}
+                                 </p>
                               </div>
                            </div>
                         ))}
@@ -329,24 +351,28 @@ const AdminDashboard = () => {
                      <div className="relative inline-flex mb-6">
                         <svg className="w-32 h-32 transform -rotate-90">
                            <circle cx="64" cy="64" r="58" className="stroke-slate-50 dark:stroke-slate-800 fill-none" strokeWidth="10" />
-                           <motion.circle
-                              cx="64" cy="64" r="58"
-                              className="stroke-primary-600 fill-none"
-                              strokeWidth="10"
+                           <motion.circle 
+                              cx="64" cy="64" r="58" 
+                              className="stroke-primary-600 fill-none" 
+                              strokeWidth="10" 
                               strokeDasharray={364}
-                              strokeDashoffset={364 - (364 * 0.88)}
+                              strokeDashoffset={364 - (364 * (orgScore / 100))}
                               strokeLinecap="round"
                               initial={{ strokeDashoffset: 364 }}
-                              animate={{ strokeDashoffset: 364 - (364 * 0.88) }}
+                              animate={{ strokeDashoffset: 364 - (364 * (orgScore / 100)) }}
                               transition={{ duration: 1.5 }}
                            />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                           <span className="text-3xl font-black text-slate-900 dark:text-white leading-none">88</span>
-                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Perfect</span>
+                           <span className="text-3xl font-black text-slate-900 dark:text-white leading-none">{orgScore}</span>
+                           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                              {orgScore >= 90 ? 'Excellent' : orgScore >= 70 ? 'Good' : 'Needs Work'}
+                           </span>
                         </div>
                      </div>
-                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400 px-4 leading-relaxed tracking-tight">Your organization hygiene score is excellent this month. High compliance and payroll accuracy maintained.</p>
+                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400 px-4 leading-relaxed tracking-tight">
+                        Your organization hygiene score is updated dynamically based on open tickets, unpaid payslips and pending leaves.
+                     </p>
                   </div>
                </div>
             </div>

@@ -254,7 +254,7 @@ const AttendanceReview = () => {
                            </div>
                         </td>
                         <td className="px-8 py-6 text-center">
-                           <p className="font-black text-slate-900">{user.overtime ? `8h + ${user.overtime}` : '8.5h'}</p>
+                           <p className="font-black text-slate-900">{user.overtime ? `8h + ${user.overtime}` : (user.hours || '0h 0m')}</p>
                         </td>
                         <td className="px-8 py-6 text-center">
                            <div className="flex items-center justify-center gap-2">
