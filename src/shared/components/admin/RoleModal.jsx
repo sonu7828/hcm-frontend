@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   X, 
@@ -86,6 +87,21 @@ const RoleModal = ({ isOpen, onClose, roleToEdit = null }) => {
     }
   }, [roleToEdit, isOpen, users]);
 
+  // Block background interaction and prevent page scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
+    } else {
+      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.classList.remove('modal-open');
+    };
+  }, [isOpen]);
+
   const togglePermission = (module, action) => {
     setFormData(prev => {
       let current = prev.permissions[module] || [];
@@ -143,7 +159,7 @@ const RoleModal = ({ isOpen, onClose, roleToEdit = null }) => {
     onClose();
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -151,16 +167,23 @@ const RoleModal = ({ isOpen, onClose, roleToEdit = null }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[110]"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] sm:w-full max-w-4xl max-h-[90vh] bg-white shadow-2xl z-[120] flex flex-col rounded-3xl overflow-hidden"
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4 sm:p-6"
+            style={{ pointerEvents: 'none' }}
           >
+            {/* The clickable backdrop */}
+            <div 
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+              onClick={onClose} 
+              style={{ pointerEvents: 'auto' }}
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              style={{ pointerEvents: 'auto' }}
+              className="relative w-full max-w-4xl h-[90vh] bg-white shadow-2xl z-[120] flex flex-col rounded-3xl overflow-hidden"
+            >
             {/* Header */}
             <div className="py-4 px-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
               <div className="flex items-center gap-4">
@@ -181,8 +204,8 @@ const RoleModal = ({ isOpen, onClose, roleToEdit = null }) => {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto min-h-0">
-                <div className="p-6">
+            <div className="flex-1 relative min-h-0 bg-white">
+                <div className="absolute inset-0 overflow-y-auto p-6">
                     {step === 1 && (
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
                             <div className="space-y-3">
@@ -268,7 +291,7 @@ const RoleModal = ({ isOpen, onClose, roleToEdit = null }) => {
                                                                 {isAvail ? (
                                                                     <label className={cn(
                                                                         "w-6 h-6 rounded-lg cursor-pointer flex items-center justify-center transition-all",
-                                                                        isChecked ? "bg-primary-600 text-white shadow-sm" : "bg-white border border-slate-200 text-slate-200 hover:border-slate-300"
+                                                                        isChecked ? "bg-primary-600 border-2 border-primary-600 text-white shadow-sm" : "bg-slate-50 border-2 border-slate-400 text-slate-500 hover:border-primary-400 hover:bg-slate-100"
                                                                     )}>
                                                                         <input 
                                                                             type="checkbox" 
@@ -345,8 +368,8 @@ const RoleModal = ({ isOpen, onClose, roleToEdit = null }) => {
                 </div>
             </div>
 
-            {/* Sticky Footer */}
-            <div className="sticky bottom-0 py-4 px-6 border-t border-slate-100 bg-white/80 backdrop-blur-md flex items-center gap-4">
+            {/* Fixed Footer */}
+            <div className="shrink-0 py-4 px-6 border-t border-slate-100 bg-white/95 backdrop-blur-md flex items-center gap-4 relative z-10">
               {step > 1 && (
                 <button 
                   type="button"
@@ -376,10 +399,13 @@ const RoleModal = ({ isOpen, onClose, roleToEdit = null }) => {
               </button>
             </div>
           </motion.div>
+          </motion.div>
         </>
       )}
     </AnimatePresence>
   );
+
+  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null;
 };
 
 export default RoleModal;

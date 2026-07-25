@@ -321,7 +321,7 @@ const RolesPermissions = () => {
                                                          'w-6 h-6 rounded-lg flex items-center justify-center border-2 transition-all active:scale-95 cursor-pointer',
                                                          isChecked
                                                             ? 'bg-primary-600 border-primary-600 shadow-lg shadow-primary-200 text-white'
-                                                            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-primary-300'
+                                                            : 'border-slate-400 bg-slate-50 dark:border-slate-600 dark:bg-slate-800 hover:border-primary-400 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-500'
                                                       )}
                                                    >
                                                       {isChecked && <Check size={14} strokeWidth={3} />}

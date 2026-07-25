@@ -101,7 +101,7 @@ export const PERMISSION_DEPENDENCIES = {
   edit: ['view'],
   delete: ['view'],
   approve: ['view'],
-  manage: ['view', 'edit'],
+  manage: ['view', 'create', 'edit', 'delete', 'approve'],
 };
 
 // Helper function to resolve dependencies
