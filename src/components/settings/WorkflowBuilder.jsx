@@ -67,7 +67,7 @@ const WorkflowBuilder = ({ workflow, onSave, onCancel }) => {
             <option value="LeaveRequest">Leave Request</option>
             {/* Future modules can be added here */}
             <option value="SalaryIncrementRequest">Salary Increment</option>
-            <option value="ExitLifecycle">Exit Lifecycle (Future)</option>
+            <option value="ExitLifecycle">Exit Lifecycle</option>
           </select>
         </div>
         <div className="col-span-2">

@@ -105,7 +105,7 @@ const ManagerResignations = () => {
                   </div>
 
                   <div className="md:w-1/4 flex flex-col justify-center gap-2 border-t border-gray-100 dark:border-gray-800 md:border-t-0 md:border-l pt-4 md:pt-0 md:pl-6">
-                    {req.status === 'PENDING_MANAGER_APPROVAL' ? (
+                    {req.canApprove ? (
                       reviewingId === req.id ? (
                         <div className="space-y-3">
                           <textarea 
