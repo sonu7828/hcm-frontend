@@ -34,6 +34,7 @@ import { PageHeader } from '../../shared/components/layout/PageHeader';
 import { adminAPI } from '../../utils/apiService';
 import { useDateFormat } from '../../hooks/useDateFormat';
 import DatePicker from '../../shared/components/common/DatePicker';
+import ImportModal from '../../shared/components/import/ImportModal';
 
 // ─── Animation Variants ─────────────────────────────────────────────────────
 const containerVariants = {
@@ -167,6 +168,7 @@ const AttendanceCenter = () => {
   const [dbShifts, setDbShifts] = useState([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [viewRecord, setViewRecord] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -224,35 +226,27 @@ const AttendanceCenter = () => {
   };
 
   const handleImport = () => {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.csv';
-    input.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        toast('Importing attendance records...', 'info');
-        setTimeout(() => {
-          toast('Successfully imported records', 'success');
-          loadData();
-        }, 1500);
-      }
-    };
-    input.click();
+    setIsImportModalOpen(true);
   };
 
   const formatDateISO = (date) => {
-    const yyyy = date.getFullYear();
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
+    if (!date) return '';
+    const d = date instanceof Date ? date : new Date(date);
+    if (isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
   };
 
   const mapStatus = (status) => {
-    if (status === 'On Leave' || status === 'Leave') return 'Leave';
-    if (status === 'Present') return 'Present';
-    if (status === 'Late') return 'Late';
-    if (status === 'Absent') return 'Absent';
-    return 'Absent';
+    if (!status) return 'Absent';
+    const s = String(status).trim().toLowerCase();
+    if (s.includes('leave')) return 'Leave';
+    if (s.includes('present')) return 'Present';
+    if (s.includes('late')) return 'Late';
+    if (s.includes('absent')) return 'Absent';
+    return 'Present';
   };
 
   // ── Derive rich attendance data from existing context ──────────────────────
@@ -268,9 +262,17 @@ const AttendanceCenter = () => {
 
     return employees.map((emp, i) => {
       // Find today's clock event
-      const todayLog = globalAttendance.find(
-        (log) => log.userId === emp.id && new Date(log.date).toISOString().split('T')[0] === todayStr
+      let todayLog = globalAttendance.find(
+        (log) => (log.userId === emp.userId || log.userId === emp.id) && formatDateISO(log.date) === todayStr
       );
+
+      if (!todayLog) {
+        const empLogs = globalAttendance.filter(log => log.userId === emp.userId || log.userId === emp.id);
+        if (empLogs.length > 0) {
+          const sorted = [...empLogs].sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt));
+          todayLog = sorted[0];
+        }
+      }
 
       if (todayLog) {
         const cIn = new Date(todayLog.clockIn);
@@ -1105,6 +1107,13 @@ const AttendanceCenter = () => {
         {showRulesModal && <ConfigureRulesModal key="rules" onClose={() => setShowRulesModal(false)} />}
         {viewRecord && <ViewAttendanceModal key="view" record={viewRecord} onClose={() => setViewRecord(null)} />}
       </AnimatePresence>
+
+      <ImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        entity="attendance"
+        onImportSuccess={loadData}
+      />
     </motion.div>
   );
 };
