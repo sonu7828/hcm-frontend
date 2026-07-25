@@ -37,7 +37,7 @@ export default function FeaturesSection({ setActiveFeature }) {
           {[
             { icon: Search, title: 'AI Recruitment', desc: 'Auto-scan resumes and rank candidates with proprietary ML models.' },
             { icon: Zap, title: 'Smart Onboarding', desc: 'Automated document collection and workflow assignment for new hires.' },
-            { icon: Calendar, title: 'Attendance Tracking', desc: 'Biometric, geo-fenced and web-based attendance monitoring.' },
+            { icon: Calendar, title: 'Time & Attendance Tracking', desc: 'Biometric, geo-fenced and web-based attendance monitoring.' },
             { icon: DollarSign, title: 'Payroll Automation', desc: 'Seamless monthly payouts with integrated tax and deduction rules.' },
             { icon: Target, title: 'Performance KPI', desc: 'Real-time objective tracking and balanced scorecards for teams.' },
             { icon: Heart, title: 'Benefits Mgmt', desc: 'Configure multi-tier insurance, wellness and reimbursement plans.' },
