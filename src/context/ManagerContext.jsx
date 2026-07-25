@@ -97,7 +97,7 @@ export const ManagerProvider = ({ children }) => {
           rawDate,
           checkIn: a.clockIn ? new Date(a.clockIn).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '09:00 AM',
           checkOut: a.clockOut ? new Date(a.clockOut).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--',
-          hours: a.totalWorkedMin ? (a.totalWorkedMin / 60).toFixed(1) + 'h' : '8.0h',
+          hours: a.totalWorkedMin ? `${Math.floor(a.totalWorkedMin / 60)}h ${a.totalWorkedMin % 60}m` : '8h 0m',
           img: a.user?.employeeProfile?.avatarUrl || ''
         };
       });
