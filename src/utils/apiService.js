@@ -223,6 +223,8 @@ export const adminAPI = {
   updateDepartment: (id, data) => API.put(`/admin/departments/${id}`, data),
   deleteDepartment: (id) => API.delete(`/admin/departments/${id}`),
 
+  getOrgChart: (params) => API.get('/admin/org-chart', { params }),
+
   getAllUsers: () => API.get('/admin/users'),
   createUser: (data) => API.post('/admin/users', data),
   updateUser: (id, data) => API.put(`/admin/users/${id}`, data),

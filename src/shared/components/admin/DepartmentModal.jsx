@@ -23,6 +23,7 @@ const DepartmentModal = ({ isOpen, onClose, deptToEdit = null }) => {
     code: '',
     head: '',
     parent: 'Corporate',
+    parentId: null,
     description: '',
     color: '#4f46e5',
     status: 'Active'
@@ -40,6 +41,7 @@ const DepartmentModal = ({ isOpen, onClose, deptToEdit = null }) => {
         code: '',
         head: '',
         parent: 'Corporate',
+        parentId: null,
         description: '',
         color: '#4f46e5',
         status: 'Active'
@@ -202,14 +204,22 @@ const DepartmentModal = ({ isOpen, onClose, deptToEdit = null }) => {
                     <div className="space-y-2">
                         <label className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest px-1">Parent Entity</label>
                         <select 
-                            name="parent"
-                            value={formData.parent}
-                            onChange={handleChange}
+                            name="parentId"
+                            value={formData.parentId || ''}
+                            onChange={(e) => {
+                              const selectedId = e.target.value || null;
+                              const selectedDept = departments.find(d => d.id === selectedId);
+                              setFormData(prev => ({
+                                ...prev,
+                                parentId: selectedId,
+                                parent: selectedDept ? selectedDept.name : 'Corporate',
+                              }));
+                            }}
                             className="input-field h-14 bg-slate-50 border-transparent font-bold text-slate-700"
                         >
-                            <option>Corporate</option>
+                            <option value="">Corporate (Root)</option>
                             {departments.filter(d => d.id !== deptToEdit?.id).map(d => (
-                                <option key={d.id} value={d.name}>{d.name}</option>
+                                <option key={d.id} value={d.id}>{d.name}</option>
                             ))}
                         </select>
                     </div>

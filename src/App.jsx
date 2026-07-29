@@ -117,6 +117,7 @@ import AdminReimbursements from './features/admin/AdminReimbursements';
 import AdminReports from './features/admin/AdminReports';
 import Settings from './features/admin/Settings';
 import AdminProfile from './features/admin/AdminProfile';
+import OrgChart from './features/admin/OrgChart';
 import ApplicationSettings from './features/admin/ApplicationSettings';
 import ApprovalWorkflows from './pages/settings/ApprovalWorkflows';
 
@@ -298,6 +299,7 @@ function App() {
               <Route path="dashboard" element={<RoleDashboardRedirect><AdminDashboard /></RoleDashboardRedirect>} />
               <Route path="org" element={<OrgSetup />} />
               <Route path="departments" element={<Departments />} />
+              <Route path="org-chart" element={<OrgChart />} />
               <Route path="users" element={<Users />} />
               <Route path="roles" element={<RolesPermissions />} />
               <Route path="payroll-config" element={<PayrollConfig />} />

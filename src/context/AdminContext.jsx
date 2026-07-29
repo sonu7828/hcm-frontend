@@ -62,6 +62,7 @@ export const AdminProvider = ({ children, user }) => {
   // --- STATE FOR API MIGRATED RESOURCES ---
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
+  const [orgChartData, setOrgChartData] = useState(null);
   const [payrollList, setPayrollList] = useState([]);
   const [systemLogs, setSystemLogs] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -161,6 +162,25 @@ export const AdminProvider = ({ children, user }) => {
       console.error(err);
       setDepartments([]);
       showToast('Failed to load departments', 'error');
+    }
+  }, []);
+
+  const fetchOrgChart = useCallback(async (departmentId = null, showToastOnSuccess = false) => {
+    const token = localStorage.getItem('hcm_token');
+    if (!token) return;
+    setLoading(true);
+    try {
+      const params = departmentId ? { departmentId } : {};
+      const res = await adminAPI.getOrgChart(params);
+      setOrgChartData(res.data?.data || null);
+      if (showToastOnSuccess) {
+        showToast('Organization chart refreshed successfully', 'success');
+      }
+    } catch (err) {
+      console.error('Failed to fetch org chart:', err);
+      showToast('Failed to load organization chart', 'error');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -1190,6 +1210,7 @@ export const AdminProvider = ({ children, user }) => {
   const value = {
     users, addUser, updateUser, deleteUser, bulkUpdateUsersStatus, bulkDeleteUsers, fetchUsers,
     departments, addDepartment, updateDepartment, deleteDepartment,
+    orgChartData, fetchOrgChart,
     roles, addRole, updateRole, deleteRole,
     toasts, showToast,
     holidays, fetchHolidays, addHoliday, updateHoliday, deleteHoliday,
